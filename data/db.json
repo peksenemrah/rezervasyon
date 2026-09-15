@@ -1,5 +1,5 @@
 {
-  "lastUpdated": 1789495611954,
+  "lastUpdated": 1789496472655,
   "settings": {
     "locations": [
       "Toplantı Salonu",
@@ -147,13 +147,6 @@
   },
   "teachers": [
     {
-      "id": "1g",
-      "className": "1/G",
-      "teacherName": "Gül Alibaş SÜTÇÜ",
-      "branch": "1/G Sınıfı Öğretmeni",
-      "group": "SABAH"
-    },
-    {
       "id": "1a",
       "className": "1/A",
       "teacherName": "İlkay Aydemir",
@@ -193,6 +186,13 @@
       "className": "1/F",
       "teacherName": "Ezo Kunt",
       "branch": "1/F Sınıfı Öğretmeni",
+      "group": "SABAH"
+    },
+    {
+      "id": "1g",
+      "className": "1/G",
+      "teacherName": "Gül Alibaş SÜTÇÜ",
+      "branch": "1/G Sınıfı Öğretmeni",
       "group": "SABAH"
     },
     {

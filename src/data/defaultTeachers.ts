@@ -1,14 +1,14 @@
 import { TeacherClassItem } from '../types';
 
 export const DEFAULT_TEACHERS: TeacherClassItem[] = [
-  // 1. Sınıflar (1/G Gül Alibaş SÜTÇÜ dahil)
-  { id: '1g', className: '1/G', teacherName: 'Gül Alibaş SÜTÇÜ', branch: '1/G Sınıfı Öğretmeni', group: 'SABAH' },
+  // 1. Sınıflar (1/A'dan 1/G'ye tam sıralı)
   { id: '1a', className: '1/A', teacherName: 'İlkay Aydemir', branch: '1/A Sınıfı Öğretmeni', group: 'SABAH' },
   { id: '1b', className: '1/B', teacherName: 'Eylül Demir Al', branch: '1/B Sınıfı Öğretmeni', group: 'SABAH' },
   { id: '1c', className: '1/C', teacherName: 'Işıl Keleş Sabancı', branch: '1/C Sınıfı Öğretmeni', group: 'SABAH' },
   { id: '1d', className: '1/D', teacherName: 'Müşerref Bozdağ', branch: '1/D Sınıfı Öğretmeni', group: 'SABAH' },
   { id: '1e', className: '1/E', teacherName: 'Emel Sert', branch: '1/E Sınıfı Öğretmeni', group: 'SABAH' },
   { id: '1f', className: '1/F', teacherName: 'Ezo Kunt', branch: '1/F Sınıfı Öğretmeni', group: 'SABAH' },
+  { id: '1g', className: '1/G', teacherName: 'Gül Alibaş SÜTÇÜ', branch: '1/G Sınıfı Öğretmeni', group: 'SABAH' },
 
   // 2. Sınıflar
   { id: '2a', className: '2/A', teacherName: 'Özlem Eravcı', branch: '2/A Sınıfı Öğretmeni', group: 'SABAH' },
@@ -56,3 +56,45 @@ export const DEFAULT_TEACHERS: TeacherClassItem[] = [
   { id: 'reh-1', className: 'Rehberlik', teacherName: 'Seher Duygu Gürsoy', branch: 'Rehber Öğretmen', group: 'TÜM' },
   { id: 'idare', className: 'Okul İdaresi', teacherName: 'Yönetim / Nöbetçi Md. Yrd.', branch: 'Okul Yönetimi', group: 'TÜM' },
 ];
+
+/**
+ * Natural sequential sorting:
+ * 1/A, 1/B ... 1/G
+ * 2/A ... 2/G
+ * 3/A ... 3/G
+ * 4/A ... 4/H
+ * Anasınıfı-A ... Anasınıfı-G
+ * İngilizce, Din Kültürü, Özel Eğitim, Rehberlik, Okul İdaresi
+ */
+export function sortTeachers(teachers: TeacherClassItem[]): TeacherClassItem[] {
+  return [...teachers].sort((a, b) => {
+    const getWeight = (item: TeacherClassItem) => {
+      const cls = (item.className || '').trim();
+      const clsLower = cls.toLocaleLowerCase('tr');
+      const match = cls.match(/^(\d+)\/([A-Za-zĞÜŞİÖÇğüşıöç]+)/i);
+      if (match) {
+        const grade = parseInt(match[1], 10);
+        const letter = match[2].toLocaleUpperCase('tr');
+        return grade * 1000 + letter.charCodeAt(0);
+      }
+      if (clsLower.includes('ana')) {
+        const matchAna = cls.match(/[-/\s]([A-Za-zĞÜŞİÖÇğüşıöç])$/i) || cls.match(/([A-Za-zĞÜŞİÖÇğüşıöç])$/i);
+        const letter = matchAna ? matchAna[1].toLocaleUpperCase('tr') : 'Z';
+        return 10000 + letter.charCodeAt(0);
+      }
+      if (clsLower.includes('ingilizce')) return 20000;
+      if (clsLower.includes('din')) return 21000;
+      if (clsLower.includes('özel')) return 22000;
+      if (clsLower.includes('rehber')) return 23000;
+      if (clsLower.includes('idare') || clsLower.includes('yönetim')) return 24000;
+      return 30000;
+    };
+
+    const weightA = getWeight(a);
+    const weightB = getWeight(b);
+    if (weightA !== weightB) {
+      return weightA - weightB;
+    }
+    return (a.teacherName || '').localeCompare(b.teacherName || '', 'tr');
+  });
+}

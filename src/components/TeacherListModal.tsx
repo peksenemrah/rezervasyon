@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { TeacherClassItem } from '../types';
-import { X, Search, Printer, Users, BookOpen, Clock, CheckCircle2 } from 'lucide-react';
+import { X, Search, Printer, Users, BookOpen, Clock } from 'lucide-react';
+import { sortTeachers } from '../data/defaultTeachers';
 
 interface TeacherListModalProps {
   isOpen: boolean;
@@ -22,7 +23,8 @@ export const TeacherListModal: React.FC<TeacherListModalProps> = ({
   const [tarihBilgisi, setTarihBilgisi] = useState('…… / …… / 2026');
 
   const filteredTeachers = useMemo(() => {
-    return teachers.filter((t) => {
+    const sorted = sortTeachers(teachers);
+    return sorted.filter((t) => {
       const q = searchQuery.toLowerCase().trim();
       const matchesSearch =
         !q ||
@@ -194,26 +196,21 @@ export const TeacherListModal: React.FC<TeacherListModalProps> = ({
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {filteredTeachers.map((t, idx) => {
-                  const is1G = t.className === '1/G';
                   return (
                     <div
                       key={t.id}
-                      className={`p-3.5 rounded-xl border transition-all flex items-start justify-between gap-3 ${
-                        is1G
-                          ? 'bg-teal-50/70 border-teal-300 ring-1 ring-teal-400'
-                          : 'bg-white border-stone-200 hover:border-stone-300 shadow-2xs'
-                      }`}
+                      className="p-3.5 rounded-xl border transition-all flex items-start justify-between gap-3 bg-white border-stone-200 hover:border-stone-300 shadow-2xs"
                     >
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <span
                             className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${
-                              is1G
-                                ? 'bg-teal-700 text-white'
-                                : t.className.startsWith('1/') || t.className.startsWith('2/')
+                              t.className.startsWith('1/') || t.className.startsWith('2/')
                                 ? 'bg-amber-100 text-amber-900'
                                 : t.className.startsWith('3/') || t.className.startsWith('4/')
                                 ? 'bg-sky-100 text-sky-900'
+                                : t.className.toLowerCase().includes('ana')
+                                ? 'bg-purple-100 text-purple-900'
                                 : 'bg-stone-100 text-stone-800'
                             }`}
                           >
@@ -226,12 +223,6 @@ export const TeacherListModal: React.FC<TeacherListModalProps> = ({
                               ? 'Öğlenci'
                               : 'Tam Gün'}
                           </span>
-                          {is1G && (
-                            <span className="text-[10px] font-bold text-teal-800 flex items-center gap-0.5">
-                              <CheckCircle2 className="w-3 h-3 text-teal-600" />
-                              Özel
-                            </span>
-                          )}
                         </div>
 
                         <div className="font-bold text-sm text-stone-900 truncate">

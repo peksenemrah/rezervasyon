@@ -25,7 +25,7 @@ import {
   pickHolidayForBlock,
   trUpper,
 } from './constants';
-import { DEFAULT_TEACHERS } from './data/defaultTeachers';
+import { DEFAULT_TEACHERS, sortTeachers } from './data/defaultTeachers';
 import { Header } from './components/Header';
 import { ScheduleGrid } from './components/ScheduleGrid';
 import { CellModal } from './components/CellModal';
@@ -99,9 +99,9 @@ export default function App() {
     return cleaned;
   });
 
-  // State: Teachers & Classes
+  // State: Teachers & Classes (sorted 1/A, 1/B ... 1/G, 2/A ...)
   const [teachers, setTeachers] = useState<TeacherClassItem[]>(() =>
-    okuOnbellek('rz_onbellek_ogretmenler', DEFAULT_TEACHERS)
+    sortTeachers(okuOnbellek('rz_onbellek_ogretmenler', DEFAULT_TEACHERS))
   );
 
   // Cloud/Storage Status
@@ -175,13 +175,14 @@ export default function App() {
   }, [settings.adminPassword]);
 
   const commitTeachers = useCallback(async (next: TeacherClassItem[]) => {
-    setTeachers(next);
-    yazOnbellek('rz_onbellek_ogretmenler', next);
+    const sorted = sortTeachers(next);
+    setTeachers(sorted);
+    yazOnbellek('rz_onbellek_ogretmenler', sorted);
     try {
       await fetch('/api/teachers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(next),
+        body: JSON.stringify(sorted),
       });
     } catch (e) {}
   }, []);
@@ -218,8 +219,9 @@ export default function App() {
           });
         }
         if (data.teachers && Array.isArray(data.teachers) && data.teachers.length > 0) {
-          setTeachers(data.teachers);
-          yazOnbellek('rz_onbellek_ogretmenler', data.teachers);
+          const sorted = sortTeachers(data.teachers);
+          setTeachers(sorted);
+          yazOnbellek('rz_onbellek_ogretmenler', sorted);
         }
         if (data.lastUpdated) {
           lastSyncTimestampRef.current = data.lastUpdated;

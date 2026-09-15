@@ -9,8 +9,11 @@ const PORT = 3000;
 app.use(express.json({ limit: '10mb' }));
 
 // Persistence file location
-const DATA_DIR = path.join(process.cwd(), 'data');
+const DATA_DIR = process.env.VERCEL
+  ? path.join('/tmp', 'data')
+  : path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
+const REPO_DB_FILE = path.join(process.cwd(), 'data', 'db.json');
 
 // Initial setup data
 const INITIAL_DATA = {
@@ -54,14 +57,14 @@ const INITIAL_DATA = {
     }
   },
   teachers: [
-    // 1. Sınıflar (1/G Gül Alibaş SÜTÇÜ dahil)
-    { id: '1g', className: '1/G', teacherName: 'Gül Alibaş SÜTÇÜ', branch: '1/G Sınıfı Öğretmeni', group: 'SABAH' },
+    // 1. Sınıflar (1/A'dan 1/G'ye tam sıralı)
     { id: '1a', className: '1/A', teacherName: 'İlkay Aydemir', branch: '1/A Sınıfı Öğretmeni', group: 'SABAH' },
     { id: '1b', className: '1/B', teacherName: 'Eylül Demir Al', branch: '1/B Sınıfı Öğretmeni', group: 'SABAH' },
     { id: '1c', className: '1/C', teacherName: 'Işıl Keleş Sabancı', branch: '1/C Sınıfı Öğretmeni', group: 'SABAH' },
     { id: '1d', className: '1/D', teacherName: 'Müşerref Bozdağ', branch: '1/D Sınıfı Öğretmeni', group: 'SABAH' },
     { id: '1e', className: '1/E', teacherName: 'Emel Sert', branch: '1/E Sınıfı Öğretmeni', group: 'SABAH' },
     { id: '1f', className: '1/F', teacherName: 'Ezo Kunt', branch: '1/F Sınıfı Öğretmeni', group: 'SABAH' },
+    { id: '1g', className: '1/G', teacherName: 'Gül Alibaş SÜTÇÜ', branch: '1/G Sınıfı Öğretmeni', group: 'SABAH' },
 
     // 2. Sınıflar
     { id: '2a', className: '2/A', teacherName: 'Özlem Eravcı', branch: '2/A Sınıfı Öğretmeni', group: 'SABAH' },
@@ -113,25 +116,60 @@ const INITIAL_DATA = {
   talepler: {}
 };
 
+function sortTeachersServer(teachers: any[]): any[] {
+  return [...teachers].sort((a, b) => {
+    const getWeight = (item: any) => {
+      const cls = (item.className || '').trim();
+      const clsLower = cls.toLocaleLowerCase('tr');
+      const match = cls.match(/^(\d+)\/([A-Za-zĞÜŞİÖÇğüşıöç]+)/i);
+      if (match) {
+        const grade = parseInt(match[1], 10);
+        const letter = match[2].toLocaleUpperCase('tr');
+        return grade * 1000 + letter.charCodeAt(0);
+      }
+      if (clsLower.includes('ana')) {
+        const matchAna = cls.match(/[-/\s]([A-Za-zĞÜŞİÖÇğüşıöç])$/i) || cls.match(/([A-Za-zĞÜŞİÖÇğüşıöç])$/i);
+        const letter = matchAna ? matchAna[1].toLocaleUpperCase('tr') : 'Z';
+        return 10000 + letter.charCodeAt(0);
+      }
+      if (clsLower.includes('ingilizce')) return 20000;
+      if (clsLower.includes('din')) return 21000;
+      if (clsLower.includes('özel')) return 22000;
+      if (clsLower.includes('rehber')) return 23000;
+      if (clsLower.includes('idare') || clsLower.includes('yönetim')) return 24000;
+      return 30000;
+    };
+
+    const weightA = getWeight(a);
+    const weightB = getWeight(b);
+    if (weightA !== weightB) {
+      return weightA - weightB;
+    }
+    return (a.teacherName || '').localeCompare(b.teacherName || '', 'tr');
+  });
+}
+
 // Ensure data folder and file exist
 function loadDatabase() {
   try {
     if (!fs.existsSync(DATA_DIR)) {
       fs.mkdirSync(DATA_DIR, { recursive: true });
     }
-    if (fs.existsSync(DB_FILE)) {
-      const content = fs.readFileSync(DB_FILE, 'utf-8');
+    const targetFile = fs.existsSync(DB_FILE) ? DB_FILE : (fs.existsSync(REPO_DB_FILE) ? REPO_DB_FILE : DB_FILE);
+    if (fs.existsSync(targetFile)) {
+      const content = fs.readFileSync(targetFile, 'utf-8');
       const parsed = JSON.parse(content);
       const settings = { ...INITIAL_DATA.settings, ...(parsed.settings || {}) };
       if (!settings.adminPassword || settings.adminPassword === '123456') {
         settings.adminPassword = 'cg2026';
       }
+      const rawTeachers = parsed.teachers && parsed.teachers.length ? parsed.teachers : INITIAL_DATA.teachers;
       // Ensure required keys exist
       return {
         ...INITIAL_DATA,
         ...parsed,
         settings,
-        teachers: parsed.teachers && parsed.teachers.length ? parsed.teachers : INITIAL_DATA.teachers,
+        teachers: sortTeachersServer(rawTeachers),
         bookings: parsed.bookings || INITIAL_DATA.bookings,
         talepler: parsed.talepler || {}
       };
@@ -359,7 +397,7 @@ app.put('/api/teachers', (req, res) => {
     if (!Array.isArray(teachers)) {
       return res.status(400).json({ error: 'Öğretmen listesi bir dizi olmalıdır.' });
     }
-    db.teachers = teachers;
+    db.teachers = sortTeachersServer(teachers);
     saveDatabase();
     return res.json({ success: true, teachers: db.teachers, lastUpdated: db.lastUpdated });
   } catch (err: any) {
@@ -389,4 +427,8 @@ async function startServer() {
   });
 }
 
-startServer();
+if (!process.env.VERCEL) {
+  startServer();
+}
+
+export default app;
