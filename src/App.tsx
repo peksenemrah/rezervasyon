@@ -37,6 +37,7 @@ import {
   yazSettings,
   yazTeachers,
 } from './firebase';
+import { bildirYeniRezervasyon, bildirYeniTalep } from './bildirim';
 import { Header } from './components/Header';
 import { ScheduleGrid } from './components/ScheduleGrid';
 import { CellModal } from './components/CellModal';
@@ -525,6 +526,9 @@ export default function App() {
 
     // Sadece bu hücreyi yaz; listenin tamamını ezme.
     await yazBooking(newBooking);
+
+    // Yöneticinin telefonuna Telegram bildirimi (beklemeden, sessizce).
+    bildirYeniRezervasyon(newBooking);
   };
 
   const handleDeleteBookingById = async (id: string) => {
@@ -570,6 +574,9 @@ export default function App() {
 
     const nextTalepler = { ...talepler, [pushId]: newTalep };
     commitTalepler(nextTalepler);
+
+    // Yöneticinin telefonuna Telegram bildirimi (beklemeden, sessizce).
+    bildirYeniTalep(newTalep);
 
     const nextKeys = [pushId, ...benimTalepAnahtarlari].slice(0, 80);
     setBenimTalepAnahtarlari(nextKeys);
