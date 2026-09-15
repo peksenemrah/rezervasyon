@@ -1,0 +1,27 @@
+{
+  "rules": {
+    "bookings": {
+      ".read": true,
+      ".write": true,
+      "$id": {
+        ".validate": "newData.hasChildren(['id','location','date','lessonLabel','block','teacher'])"
+      }
+    },
+    "talepler": {
+      ".read": true,
+      ".write": true
+    },
+    "settings": {
+      ".read": true,
+      ".write": true
+    },
+    "teachers": {
+      ".read": true,
+      ".write": true
+    },
+    "$diger": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}

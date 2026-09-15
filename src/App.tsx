@@ -26,6 +26,17 @@ import {
   trUpper,
 } from './constants';
 import { DEFAULT_TEACHERS, sortTeachers } from './data/defaultTeachers';
+import {
+  firebaseHazir,
+  bulutaBaglan,
+  yazBookings,
+  yazBooking,
+  silBooking,
+  yenidenBaglan,
+  yazTalepler,
+  yazSettings,
+  yazTeachers,
+} from './firebase';
 import { Header } from './components/Header';
 import { ScheduleGrid } from './components/ScheduleGrid';
 import { CellModal } from './components/CellModal';
@@ -153,150 +164,68 @@ export default function App() {
   const commitSettings = useCallback(async (next: Settings) => {
     setSettings(next);
     yazOnbellek('rz_onbellek_ayarlar', next);
-    try {
-      await fetch('/api/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(next),
-      });
-    } catch (e) {}
+    await yazSettings(next);
   }, []);
 
   const commitBookings = useCallback(async (next: Booking[]) => {
     setBookings(next);
     yazOnbellek('rz_onbellek_rezervasyonlar', next);
-    try {
-      await fetch('/api/bookings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bookings: next, adminPassword: settings.adminPassword || 'cg2026' }),
-      });
-    } catch (e) {}
-  }, [settings.adminPassword]);
+    await yazBookings(next);
+  }, []);
 
   const commitTeachers = useCallback(async (next: TeacherClassItem[]) => {
     const sorted = sortTeachers(next);
     setTeachers(sorted);
     yazOnbellek('rz_onbellek_ogretmenler', sorted);
-    try {
-      await fetch('/api/teachers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(sorted),
-      });
-    } catch (e) {}
+    await yazTeachers(sorted);
   }, []);
 
   const commitTalepler = useCallback(async (next: Record<string, Talep>) => {
     setTalepler(next);
     yazOnbellek('rz_onbellek_talepler', next);
-    try {
-      await fetch('/api/talepler', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ talepler: next }),
-      });
-    } catch (e) {}
+    await yazTalepler(next);
   }, []);
 
-  // Cloud Synchronization Engine
-  const lastSyncTimestampRef = useRef<number>(0);
-  const consecutiveErrorsRef = useRef<number>(0);
-
-  const fetchCloudState = useCallback(async () => {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
-      const res = await fetch('/api/state', { signal: controller.signal });
-      clearTimeout(timeoutId);
-
-      if (res.ok) {
-        const data = await res.json();
-        if (data.bookings && Array.isArray(data.bookings)) {
-          setBookings(data.bookings);
-          yazOnbellek('rz_onbellek_rezervasyonlar', data.bookings);
-        }
-        if (data.talepler && typeof data.talepler === 'object') {
-          setTalepler(data.talepler);
-          yazOnbellek('rz_onbellek_talepler', data.talepler);
-        }
-        if (data.settings && typeof data.settings === 'object') {
-          setSettings((prev) => {
-            const merged = { ...prev, ...data.settings };
-            if (!merged.adminPassword || merged.adminPassword === '123456') {
-              merged.adminPassword = 'cg2026';
-            }
-            yazOnbellek('rz_onbellek_ayarlar', merged);
-            return merged;
-          });
-        }
-        if (data.teachers && Array.isArray(data.teachers) && data.teachers.length > 0) {
-          const sorted = sortTeachers(data.teachers);
-          setTeachers(sorted);
-          yazOnbellek('rz_onbellek_ogretmenler', sorted);
-        }
-        if (data.lastUpdated) {
-          lastSyncTimestampRef.current = data.lastUpdated;
-        }
-        consecutiveErrorsRef.current = 0;
-        setCloudStatus('senkron');
-      } else {
-        consecutiveErrorsRef.current += 1;
-        if (consecutiveErrorsRef.current >= 5) {
-          setCloudStatus('yerel');
-        }
-      }
-    } catch (err) {
-      consecutiveErrorsRef.current += 1;
-      if (consecutiveErrorsRef.current >= 5) {
-        setCloudStatus('yerel');
-      }
-    }
-  }, []);
-
-  // Poll cloud state every 2.5s so every client sees live changes in real time
+  // ---------------- Firebase Realtime Database senkronizasyonu ----------------
+  // Sunucu yoklama (polling) kaldırıldı: RTDB dinleyicileri değişikliği
+  // açık olan bütün cihazlara anında iletir.
   useEffect(() => {
-    fetchCloudState();
+    if (!firebaseHazir) {
+      setCloudStatus('yerel');
+      return;
+    }
 
-    const interval = setInterval(async () => {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 6000);
-        const checkRes = await fetch('/api/poll', { signal: controller.signal });
-        clearTimeout(timeoutId);
+    setCloudStatus('baglaniyor');
 
-        if (checkRes.ok) {
-          consecutiveErrorsRef.current = 0;
-          setCloudStatus('senkron');
-          const pollData = await checkRes.json();
-          if (pollData.lastUpdated && pollData.lastUpdated > lastSyncTimestampRef.current) {
-            fetchCloudState();
+    const kapat = bulutaBaglan({
+      onDurum: (durum) => setCloudStatus(durum),
+      onBookings: (liste) => {
+        setBookings(liste);
+        yazOnbellek('rz_onbellek_rezervasyonlar', liste);
+      },
+      onTalepler: (gelen) => {
+        setTalepler(gelen);
+        yazOnbellek('rz_onbellek_talepler', gelen);
+      },
+      onSettings: (gelen) => {
+        setSettings((prev) => {
+          const merged = { ...prev, ...gelen } as Settings;
+          if (!merged.adminPassword || merged.adminPassword === '123456') {
+            merged.adminPassword = 'cg2026';
           }
-        } else {
-          consecutiveErrorsRef.current += 1;
-          if (consecutiveErrorsRef.current >= 5) {
-            setCloudStatus('yerel');
-          }
-        }
-      } catch (e) {
-        consecutiveErrorsRef.current += 1;
-        if (consecutiveErrorsRef.current >= 5) {
-          setCloudStatus('yerel');
-        }
-      }
-    }, 2500);
+          yazOnbellek('rz_onbellek_ayarlar', merged);
+          return merged;
+        });
+      },
+      onTeachers: (gelen) => {
+        const sorted = sortTeachers(gelen);
+        setTeachers(sorted);
+        yazOnbellek('rz_onbellek_ogretmenler', sorted);
+      },
+    });
 
-    const handleFocus = () => fetchCloudState();
-    const handleOnline = () => fetchCloudState();
-    window.addEventListener('focus', handleFocus);
-    window.addEventListener('online', handleOnline);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('focus', handleFocus);
-      window.removeEventListener('online', handleOnline);
-    };
-  }, [fetchCloudState]);
+    return () => kapat();
+  }, []);
 
   // Sync activeLocation if locations changed
   useEffect(() => {
@@ -589,42 +518,23 @@ export default function App() {
       timestamp: Date.now(),
     };
     const nextBookings = [...bookings.filter((b) => b.id !== id), newBooking];
-    commitBookings(nextBookings);
+    setBookings(nextBookings);
+    yazOnbellek('rz_onbellek_rezervasyonlar', nextBookings);
     setEditingCell(null);
     setToastMsg(`${teacher} rezervasyonu kaydedildi`);
 
-    try {
-      const res = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newBooking),
-      });
-      if (res.ok) {
-        setCloudStatus('senkron');
-      }
-    } catch (e) {
-      console.warn('Buluta aktarılamadı', e);
-    }
+    // Sadece bu hücreyi yaz; listenin tamamını ezme.
+    await yazBooking(newBooking);
   };
 
   const handleDeleteBookingById = async (id: string) => {
     const updated = bookings.filter((x) => x.id !== id);
-    commitBookings(updated);
+    setBookings(updated);
+    yazOnbellek('rz_onbellek_rezervasyonlar', updated);
     setToastMsg('Rezervasyon silindi');
 
-    try {
-      const res = await fetch(`/api/bookings/${encodeURIComponent(id)}`, {
-        method: 'DELETE',
-        headers: {
-          'x-admin-password': settings.adminPassword,
-        },
-      });
-      if (res.ok) {
-        setCloudStatus('senkron');
-      }
-    } catch (e) {
-      console.warn('Buluttan silinemedi', e);
-    }
+    // Sadece bu kaydı sil; listenin tamamını ezme.
+    await silBooking(id);
   };
 
   const handleDeleteCurrentBooking = () => {
@@ -1090,7 +1000,7 @@ export default function App() {
         onOpenAuth={() => setShowAuthModal(true)}
         onLogout={handleLogout}
         onOpenMobileMenu={() => setShowMobileMenu(true)}
-        onRetrySync={fetchCloudState}
+        onRetrySync={yenidenBaglan}
       />
 
       {/* Main Table Content */}

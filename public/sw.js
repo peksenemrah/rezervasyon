@@ -1,5 +1,5 @@
 /* Service Worker for PWA Offline Shell & Notifications */
-const ONBELLEK = 'rezervasyon-talep-kabuk-v5';
+const ONBELLEK = 'rezervasyon-talep-kabuk-v6';
 const KABUK = [
   './',
   './index.html',
