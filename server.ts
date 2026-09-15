@@ -381,6 +381,22 @@ app.post('/api/bookings/bulk', (req, res) => {
   }
 });
 
+// Update requests/talepler
+app.put('/api/talepler', (req, res) => {
+  try {
+    const { talepler } = req.body;
+    if (talepler && typeof talepler === 'object') {
+      db.talepler = talepler;
+      db.lastUpdated = Date.now();
+      saveDatabase();
+      return res.json({ success: true, talepler: db.talepler, lastUpdated: db.lastUpdated });
+    }
+    return res.status(400).json({ error: 'Geçersiz talep verisi.' });
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Talepler güncellenirken hata oluştu.' });
+  }
+});
+
 // Update settings (admin)
 app.put('/api/settings', (req, res) => {
   try {

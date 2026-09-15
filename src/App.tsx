@@ -187,9 +187,16 @@ export default function App() {
     } catch (e) {}
   }, []);
 
-  const commitTalepler = useCallback((next: Record<string, Talep>) => {
+  const commitTalepler = useCallback(async (next: Record<string, Talep>) => {
     setTalepler(next);
     yazOnbellek('rz_onbellek_talepler', next);
+    try {
+      await fetch('/api/talepler', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ talepler: next }),
+      });
+    } catch (e) {}
   }, []);
 
   // Cloud Synchronization Engine
