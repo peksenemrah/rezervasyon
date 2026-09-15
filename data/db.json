@@ -1,5 +1,5 @@
 {
-  "lastUpdated": 1789496472655,
+  "lastUpdated": 1789497706985,
   "settings": {
     "locations": [
       "Toplantı Salonu",
@@ -430,6 +430,20 @@
       "id": "ozel-2",
       "className": "Özel Eğitim",
       "teacherName": "Ezgi Gülhan",
+      "branch": "Özel Eğitim Sınıf Öğretmeni",
+      "group": "TÜM"
+    },
+    {
+      "id": "ozel-3",
+      "className": "Özel Eğitim",
+      "teacherName": "Funda Aydöner",
+      "branch": "Özel Eğitim Sınıf Öğretmeni",
+      "group": "TÜM"
+    },
+    {
+      "id": "ozel-4",
+      "className": "Özel Eğitim",
+      "teacherName": "Müjgan Korkut",
       "branch": "Özel Eğitim Sınıf Öğretmeni",
       "group": "TÜM"
     },

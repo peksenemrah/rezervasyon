@@ -53,6 +53,8 @@ export const DEFAULT_TEACHERS: TeacherClassItem[] = [
   { id: 'din-1', className: 'Din Kültürü', teacherName: 'İbrahim Güçlü', branch: 'Din Kültürü ve Ahlak Bilgisi Öğretmeni', group: 'TÜM' },
   { id: 'ozel-1', className: 'Özel Eğitim', teacherName: 'Ayşe Elmacı', branch: 'Özel Eğitim Sınıf Öğretmeni', group: 'TÜM' },
   { id: 'ozel-2', className: 'Özel Eğitim', teacherName: 'Ezgi Gülhan', branch: 'Özel Eğitim Sınıf Öğretmeni', group: 'TÜM' },
+  { id: 'ozel-3', className: 'Özel Eğitim', teacherName: 'Funda Aydöner', branch: 'Özel Eğitim Sınıf Öğretmeni', group: 'TÜM' },
+  { id: 'ozel-4', className: 'Özel Eğitim', teacherName: 'Müjgan Korkut', branch: 'Özel Eğitim Sınıf Öğretmeni', group: 'TÜM' },
   { id: 'reh-1', className: 'Rehberlik', teacherName: 'Seher Duygu Gürsoy', branch: 'Rehber Öğretmen', group: 'TÜM' },
   { id: 'idare', className: 'Okul İdaresi', teacherName: 'Yönetim / Nöbetçi Md. Yrd.', branch: 'Okul Yönetimi', group: 'TÜM' },
 ];
