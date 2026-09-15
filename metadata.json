@@ -1,0 +1,6 @@
+{
+  "name": "Cevdet Güçlüer İlkokulu Rezervasyon",
+  "description": "Cevdet Güçlüer İlkokulu Toplantı Salonu ve Akıl Zeka Oyunları Sınıfı Rezervasyon Sistemi",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

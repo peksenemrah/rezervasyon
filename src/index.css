@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+:root {
+  --ink: #20261F;
+  --ink-soft: #5E675B;
+  --paper: #F2F1E7;
+  --paper-2: #E9E5D3;
+  --panel: #FCFBF6;
+  --line: #C7C0A4;
+  --line-strong: #8F8563;
+  --teal: #4FB6AC;
+  --teal-dark: #2D7D74;
+  --teal-tint: #DFF4F1;
+  --ochre: #AE7E2B;
+  --ochre-tint: #F1E3C3;
+  --brick: #9E3D31;
+  --brick-tint: #F3DEDA;
+  --green: #3F8F5F;
+  --green-tint: #DCEEDD;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Work Sans', sans-serif;
+  overscroll-behavior-y: none;
+}
+
+.font-display {
+  font-family: 'Fraunces', serif;
+}
+
+.font-mono {
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.safe-b {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+}
+.safe-t {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.cell-tap:active {
+  background-color: var(--paper-2) !important;
+}
+
+button:not(:disabled) {
+  transition: transform .1s ease, box-shadow .1s ease, opacity .1s ease;
+}
+button:not(:disabled):active {
+  transform: scale(0.96);
+}
+
+/* Snapshot image capture mode */
+.snapshot-active .no-snapshot {
+  display: none !important;
+}
+.snapshot-active .table-wrapper {
+  border: 3px solid var(--teal-dark) !important;
+  border-radius: 0 !important;
+  background: var(--panel) !important;
+  width: 1400px !important;
+  margin: 0 auto !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+.snapshot-active main {
+  max-width: none !important;
+  width: 100% !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin-top: 180px !important;
+  display: flex !important;
+  justify-content: center !important;
+}
+.snapshot-active .sticky {
+  position: static !important;
+}
+
+@media (max-width: 767px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+  button, a, select, label {
+    touch-action: manipulation;
+  }
+  .overflow-y-auto, .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+}
