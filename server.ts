@@ -200,6 +200,13 @@ function saveDatabase(dataToSave = db) {
 
 // ---------------- API ROUTES ----------------
 
+app.use('/api', (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', school: db.settings.schoolName, lastUpdated: db.lastUpdated });

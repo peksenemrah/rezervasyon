@@ -126,7 +126,7 @@ export const Header: React.FC<HeaderProps> = ({
                 {cloudStatus === 'senkron' ? (
                   <Cloud className="w-3 h-3 text-emerald-700" />
                 ) : cloudStatus === 'yerel' ? (
-                  <CloudOff className="w-3 h-3 text-stone-500" />
+                  <RefreshCw className="w-3 h-3 animate-spin text-amber-700" />
                 ) : (
                   <RefreshCw className="w-3 h-3 animate-spin text-amber-700" />
                 )}
@@ -134,10 +134,10 @@ export const Header: React.FC<HeaderProps> = ({
                   {cloudStatus === 'senkron'
                     ? 'Senkronize'
                     : cloudStatus === 'yerel'
-                    ? 'Yerel Mod'
+                    ? 'Senkronizasyon Bekleniyor…'
                     : cloudStatus === 'hata'
-                    ? 'Bağlantı Hatası'
-                    : 'Bağlanıyor…'}
+                    ? 'Bağlantı Hatası (Tekrar Dene)'
+                    : 'Senkronize Ediliyor…'}
                 </span>
               </button>
             </div>

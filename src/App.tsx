@@ -105,7 +105,7 @@ export default function App() {
   );
 
   // Cloud/Storage Status
-  const [cloudStatus, setCloudStatus] = useState<'senkron' | 'yerel' | 'baglaniyor' | 'hata'>('baglaniyor');
+  const [cloudStatus, setCloudStatus] = useState<'senkron' | 'yerel' | 'baglaniyor' | 'hata'>('senkron');
 
   // Active Location & Block
   const [activeLocation, setActiveLocation] = useState<string>(() => {
@@ -194,11 +194,12 @@ export default function App() {
 
   // Cloud Synchronization Engine
   const lastSyncTimestampRef = useRef<number>(0);
+  const consecutiveErrorsRef = useRef<number>(0);
 
   const fetchCloudState = useCallback(async () => {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3500);
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
       const res = await fetch('/api/state', { signal: controller.signal });
       clearTimeout(timeoutId);
 
@@ -230,12 +231,19 @@ export default function App() {
         if (data.lastUpdated) {
           lastSyncTimestampRef.current = data.lastUpdated;
         }
+        consecutiveErrorsRef.current = 0;
         setCloudStatus('senkron');
       } else {
-        setCloudStatus('yerel');
+        consecutiveErrorsRef.current += 1;
+        if (consecutiveErrorsRef.current >= 5) {
+          setCloudStatus('yerel');
+        }
       }
     } catch (err) {
-      setCloudStatus('yerel');
+      consecutiveErrorsRef.current += 1;
+      if (consecutiveErrorsRef.current >= 5) {
+        setCloudStatus('yerel');
+      }
     }
   }, []);
 
@@ -246,26 +254,41 @@ export default function App() {
     const interval = setInterval(async () => {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2000);
+        const timeoutId = setTimeout(() => controller.abort(), 6000);
         const checkRes = await fetch('/api/poll', { signal: controller.signal });
         clearTimeout(timeoutId);
 
         if (checkRes.ok) {
+          consecutiveErrorsRef.current = 0;
           setCloudStatus('senkron');
           const pollData = await checkRes.json();
           if (pollData.lastUpdated && pollData.lastUpdated > lastSyncTimestampRef.current) {
             fetchCloudState();
           }
         } else {
-          setCloudStatus('yerel');
+          consecutiveErrorsRef.current += 1;
+          if (consecutiveErrorsRef.current >= 5) {
+            setCloudStatus('yerel');
+          }
         }
       } catch (e) {
-        // network or server temporary unavailable
-        setCloudStatus('yerel');
+        consecutiveErrorsRef.current += 1;
+        if (consecutiveErrorsRef.current >= 5) {
+          setCloudStatus('yerel');
+        }
       }
     }, 2500);
 
-    return () => clearInterval(interval);
+    const handleFocus = () => fetchCloudState();
+    const handleOnline = () => fetchCloudState();
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('online', handleOnline);
+    };
   }, [fetchCloudState]);
 
   // Sync activeLocation if locations changed
