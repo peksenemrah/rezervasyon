@@ -197,7 +197,11 @@ export default function App() {
 
   const fetchCloudState = useCallback(async () => {
     try {
-      const res = await fetch('/api/state');
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
+      const res = await fetch('/api/state', { signal: controller.signal });
+      clearTimeout(timeoutId);
+
       if (res.ok) {
         const data = await res.json();
         if (data.bookings && Array.isArray(data.bookings)) {
@@ -227,6 +231,8 @@ export default function App() {
           lastSyncTimestampRef.current = data.lastUpdated;
         }
         setCloudStatus('senkron');
+      } else {
+        setCloudStatus('yerel');
       }
     } catch (err) {
       setCloudStatus('yerel');
@@ -239,15 +245,23 @@ export default function App() {
 
     const interval = setInterval(async () => {
       try {
-        const checkRes = await fetch('/api/poll');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
+        const checkRes = await fetch('/api/poll', { signal: controller.signal });
+        clearTimeout(timeoutId);
+
         if (checkRes.ok) {
+          setCloudStatus('senkron');
           const pollData = await checkRes.json();
           if (pollData.lastUpdated && pollData.lastUpdated > lastSyncTimestampRef.current) {
             fetchCloudState();
           }
+        } else {
+          setCloudStatus('yerel');
         }
       } catch (e) {
-        // silent retry
+        // network or server temporary unavailable
+        setCloudStatus('yerel');
       }
     }, 2500);
 
@@ -1046,6 +1060,7 @@ export default function App() {
         onOpenAuth={() => setShowAuthModal(true)}
         onLogout={handleLogout}
         onOpenMobileMenu={() => setShowMobileMenu(true)}
+        onRetrySync={fetchCloudState}
       />
 
       {/* Main Table Content */}

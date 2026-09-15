@@ -15,6 +15,7 @@ interface HeaderProps {
   onOpenAuth: () => void;
   onLogout: () => void;
   onOpenMobileMenu: () => void;
+  onRetrySync?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -29,6 +30,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenAuth,
   onLogout,
   onOpenMobileMenu,
+  onRetrySync,
 }) => {
   return (
     <header
@@ -90,9 +92,11 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
               )}
               {/* Cloud / Storage Status Pill */}
-              <span
+              <button
+                type="button"
                 id="cloud-status-pill"
-                className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-md shrink-0"
+                onClick={onRetrySync}
+                className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-md shrink-0 cursor-pointer transition-transform active:scale-95 border border-transparent hover:border-black/10"
                 style={{
                   background:
                     cloudStatus === 'senkron'
@@ -113,18 +117,18 @@ export const Header: React.FC<HeaderProps> = ({
                 }}
                 title={
                   cloudStatus === 'senkron'
-                    ? 'Bulut ve yerel hafıza senkronize'
+                    ? 'Bulut ve yerel hafıza senkronize (Yenilemek için tıklayın)'
                     : cloudStatus === 'yerel'
-                    ? 'Çevrimdışı / Yerel hafıza aktif'
-                    : 'Bağlantı durumu'
+                    ? 'Çevrimdışı / Yerel hafıza devrede (Tekrar bağlanmayı denemek için tıklayın)'
+                    : 'Sunucuya bağlanılıyor… Yenilemek için tıklayabilirsiniz'
                 }
               >
                 {cloudStatus === 'senkron' ? (
-                  <Cloud className="w-3 h-3" />
+                  <Cloud className="w-3 h-3 text-emerald-700" />
                 ) : cloudStatus === 'yerel' ? (
-                  <CloudOff className="w-3 h-3" />
+                  <CloudOff className="w-3 h-3 text-stone-500" />
                 ) : (
-                  <RefreshCw className="w-3 h-3 animate-spin" />
+                  <RefreshCw className="w-3 h-3 animate-spin text-amber-700" />
                 )}
                 <span>
                   {cloudStatus === 'senkron'
@@ -135,7 +139,7 @@ export const Header: React.FC<HeaderProps> = ({
                     ? 'Bağlantı Hatası'
                     : 'Bağlanıyor…'}
                 </span>
-              </span>
+              </button>
             </div>
           </div>
         </div>
