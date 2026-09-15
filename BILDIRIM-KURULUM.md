@@ -1,80 +1,77 @@
-# Telegram Bildirimi — Kurulum
+# Bildirim Kurulumu
 
-Yeni rezervasyon ya da yeni talep geldiğinde telefonuna Telegram mesajı düşer.
+Yeni rezervasyon ya da yeni talep geldiğinde telefonuna bildirim düşer.
 
-Kod tarafı hazır. Geriye botu açıp iki tane değeri Vercel'e girmek kaldı.
-Tahmini süre: 10 dakika.
+Kod tarafı hazır ve denendi. Sana kalan üç adım var, 3 dakika sürer.
+Hesap açmak, şifre, anahtar yok.
 
 ---
 
-## 1. Botu aç (telefondan, Telegram içinde)
-
-1. Telegram'da arama kutusuna `@BotFather` yaz, çık gelen resmî hesabı aç
-   (mavi tikli olan).
-2. `/newbot` yaz.
-3. Bota bir ad sor: örneğin `Okul Rezervasyon`.
-4. Bir kullanıcı adı sor: **`bot` ile bitmek zorunda**, örneğin
-   `cg_rezervasyon_bot`. Adın alınmışsa başka dene.
-5. BotFather sana şöyle bir satır verir:
-
-   ```
-   7123456789:AAE_kQ-buradaUzunBirDizi_xyz
-   ```
-
-   Bu **bot anahtarı**. Kimseyle paylaşma, ekran görüntüsünü atma.
-
-## 2. Bota bir kez yaz
-
-Botunun adına dokunup sohbeti aç ve **Start**'a bas (ya da `merhaba` yaz).
-
-Bu adım şart: Telegram, sen ona yazmadan botun sana mesaj atmasına izin vermez.
-
-## 3. Sohbet numaranı öğren
-
-Tarayıcıda şu adresi aç — `<ANAHTAR>` yerine 1. adımdaki anahtarı yapıştır:
+## Kanal adın
 
 ```
-https://api.telegram.org/bot<ANAHTAR>/getUpdates
+cg-rez-935byvu5qt
 ```
 
-Dönen metinde `"chat":{"id":123456789,` gibi bir yer olacak. Oradaki sayı
-(`123456789`) senin **sohbet numaran**. Eksi işaretliyse eksiyi de al.
+Bu senin özel kanal adın. Bildirimler buradan akacak. Rastgele üretildi;
+**tahmin edilmesin diye kimseyle paylaşma** (nedeni aşağıda "Bilinmesi
+gerekenler" bölümünde).
 
-> Boş `{"ok":true,"result":[]}` dönüyorsa 2. adımı atlamışsındır: bota
-> bir mesaj yaz, sonra sayfayı tazele.
+---
 
-## 4. İki değeri Vercel'e gir
+## 1. Uygulamayı kur (telefonda)
 
-Vercel paneli → `rezervasyon` projesi → **Settings** → **Environment Variables**.
-İki kayıt ekle (üçü de — Production, Preview, Development — işaretli olsun):
+Play Store'da **ntfy** diye ara — simgesi yeşil zil olan, geliştirici
+"Philipp Heckel". Kur ve aç.
+
+## 2. Kanalı ekle
+
+1. Uygulamada sağ alttaki **+** düğmesine bas.
+2. Açılan kutuya kanal adını yaz:
+
+   ```
+   cg-rez-935byvu5qt
+   ```
+
+3. **Subscribe** (Abone ol) de. Başka hiçbir şeye dokunma —
+   "Use another server" gibi seçenekleri boş bırak.
+
+Listede kanal adı görünüyorsa tamamdır.
+
+## 3. Vercel'e kanal adını gir
+
+Vercel paneli → `rezervasyon` projesi → **Settings** → **Environment Variables**
+→ yeni kayıt:
 
 | Name | Value |
 |---|---|
-| `TELEGRAM_BOT_TOKEN` | 1. adımdaki anahtar |
-| `TELEGRAM_CHAT_ID` | 3. adımdaki sayı |
+| `NTFY_TOPIC` | `cg-rez-935byvu5qt` |
 
-## 5. Yayına al
+Production / Preview / Development — üçü de işaretli olsun. **Save**.
+
+---
+
+## Yayına alma
 
 ```bash
 cd ~/rezervasyon
 git push origin main
 ```
 
-Vercel otomatik deploy eder. **Önemli:** ortam değişkenlerini deploy'dan
-sonra eklediysen yeni bir deploy gerekir — panelde **Deployments** →
-en üstteki → **Redeploy**.
+Vercel otomatik deploy eder.
 
-## 6. Dene
+> **Önemli:** Ortam değişkenini deploy'dan sonra eklediysen yeni bir deploy
+> gerekir. Panelde **Deployments** → en üstteki → **Redeploy**.
+
+## Deneme
 
 1. `https://rezervasyon-seven.vercel.app/api/bildir` adresini aç.
-   `{"hazir":true}` görmelisin.
-   - `{"hazir":false,"eksik":"TELEGRAM_CHAT_ID"}` görüyorsan 4. adım eksik
-     ya da redeploy yapılmamış.
-2. Siteden bir rezervasyon yap. Telefonuna birkaç saniye içinde şöyle bir
-   mesaj düşmeli:
+   `{"hazir":true,"kanallar":["ntfy"]}` görmelisin.
+   - `{"hazir":false...}` görüyorsan 3. adım eksik ya da redeploy yapılmadı.
+2. Siteden bir rezervasyon yap. Telefonuna birkaç saniye içinde şu düşer:
 
    ```
-   📌 Yeni rezervasyon
+   Yeni rezervasyon
 
    Yer: Akıl ve Zeka Oyunları Sınıfı
    Tarih: 17 Eylül 2026 Perşembe
@@ -83,38 +80,52 @@ en üstteki → **Redeploy**.
    Etkinlik: Zeka Oyunları Kulüp Saati
    ```
 
+Talep geldiğinde başlık "Yeni talep (onay bekliyor)" olur ve bildirim
+daha sessiz gelir; rezervasyon bildirimi yüksek öncelikli gider.
+
 ---
 
 ## Nasıl çalışıyor
 
 - `src/bildirim.ts` — rezervasyon/talep oluşunca `/api/bildir` adresine
-  haber verir. Beklemez, hata fırlatmaz: bildirim gitmese bile rezervasyon
-  kaydedilir.
-- `api/bildir.js` — Vercel'de çalışan küçük bir fonksiyon. Mesajı kurar ve
-  Telegram'a gönderir. Bot anahtarı **burada** durur, tarayıcıya hiç inmez.
-- Bildirimi, kaydı oluşturan cihaz tetikler. Yani bir rezervasyon için tek
-  mesaj gelir, siteyi açık tutan her cihaz için ayrı ayrı gelmez.
+  haber verir. Beklemez, hata fırlatmaz.
+- `api/bildir.js` — Vercel'de çalışan küçük bir fonksiyon. Mesajı kurup
+  ntfy'ye gönderir. Kanal adı **burada** durur, tarayıcıya inmez.
+- Bildirimi, kaydı oluşturan cihaz tetikler. Bir rezervasyon için tek
+  bildirim gelir, siteyi açık tutan her cihaz için ayrı ayrı gelmez.
 
 ## Bilinmesi gerekenler
 
 **Bildirim gelmezse rezervasyon kaybolmaz.** İkisi birbirinden bağımsız.
-Telegram çökse bile sistem normal çalışır.
+ntfy çökse bile sistem normal çalışır.
 
-**`/api/bildir` adresi herkese açık.** Adresi bilen biri teoride sahte
-bildirim gönderip seni rahatsız edebilir. Verilere dokunamaz, sadece
-mesaj atar. Böyle bir şey olursa BotFather'dan `/revoke` ile anahtarı
-yenile ve Vercel'deki değeri güncelle.
+**ntfy'de şifre yok, kanal adının kendisi anahtardır.** Kanal adını bilen
+biri hem bildirimleri görebilir hem sana sahte bildirim gönderebilir.
+Verilere dokunamaz. Ad rastgele üretildiği için tahmin edilmesi pratikte
+imkânsız, ama adı yazılı bir yere koyma. Sızdığını düşünürsen: yeni bir ad
+uydur, telefonda ona abone ol, Vercel'deki `NTFY_TOPIC` değerini değiştir,
+redeploy et.
 
-**Telefonu değiştirirsen** bir şey yapmana gerek yok; Telegram hesabın
-aynı kaldığı sürece mesajlar gelmeye devam eder.
+**Bildirim gelmiyorsa** ilk bakılacak yer telefonun pil ayarları:
+Ayarlar → Uygulamalar → ntfy → Pil → **Kısıtlanmamış** olsun. Android
+uygulamayı uyutursa bildirim gecikir.
 
-**Bildirimi kapatmak istersen** Vercel'den `TELEGRAM_BOT_TOKEN` değerini
-sil ve redeploy et. Kod bunu görünce sessizce devre dışı kalır.
+**Bildirimi kapatmak istersen** Vercel'den `NTFY_TOPIC` değerini sil ve
+redeploy et. Kod bunu görünce sessizce devre dışı kalır.
+
+**Telefonu değiştirirsen** yeni telefona ntfy'yi kurup aynı kanal adına
+abone olman yeterli.
+
+## Telegram isteyen olursa
+
+Kod Telegram'ı da destekliyor. `TELEGRAM_BOT_TOKEN` ve `TELEGRAM_CHAT_ID`
+ortam değişkenlerini girersen oraya da gönderir; ikisi aynı anda açık
+olabilir. Kurulumu ntfy'den zahmetli olduğu için varsayılan bu değil.
 
 ## Sonradan istenebilecekler
 
 - Rezervasyon **iptallerinde** de bildirim (`silBooking` çağrısına aynı
   kancayı takmak yeterli).
 - Her akşam "yarın şunlar var" özeti (bir cron gerekir).
-- Bildirimin birden fazla kişiye gitmesi (Telegram'da bir grup açıp grup
-  numarasını `TELEGRAM_CHAT_ID` yapmak yeterli).
+- Bildirimin birden fazla kişiye gitmesi — ntfy'de bedava: diğer kişi de
+  aynı kanal adına abone olur, hepsine birden düşer.

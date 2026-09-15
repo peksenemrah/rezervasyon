@@ -1,17 +1,21 @@
 /* ------------------------------------------------------------------
-   TELEGRAM BİLDİRİMİ — sunucu tarafı
+   BİLDİRİM — sunucu tarafı
 
    Yeni rezervasyon ya da yeni talep oluştuğunda tarayıcı buraya
-   POST atar, burası Telegram'a mesajı gönderir.
+   POST atar, burası bildirimi telefona gönderir.
 
-   Bot anahtarı neden burada?
-   Tarayıcıya konulan her şey herkese açıktır. Bot anahtarı sızarsa
-   başkası senin botunla mesaj gönderebilir. O yüzden anahtar
-   Vercel ortam değişkeninde durur, tarayıcı onu hiç görmez.
+   İki kanal desteklenir; hangisi ayarlıysa o çalışır, ikisi de
+   ayarlıysa ikisine birden gider:
 
-   Gerekli ortam değişkenleri (Vercel > Settings > Environment Variables):
-     TELEGRAM_BOT_TOKEN   BotFather'ın verdiği anahtar
-     TELEGRAM_CHAT_ID     Mesajın gideceği sohbetin numarası
+     NTFY_TOPIC           ntfy.sh kanal adı  (basit yol, önerilen)
+     TELEGRAM_BOT_TOKEN   \
+     TELEGRAM_CHAT_ID     / Telegram botu   (ikisi birlikte gerekir)
+
+   Hiçbiri ayarlı değilse sistem sessizce bildirimsiz çalışır —
+   rezervasyon yine normal kaydedilir.
+
+   Neden tarayıcıda değil de burada? Tarayıcıya konan her şey herkese
+   açıktır. Kanal adı ve bot anahtarı burada kalır, tarayıcıya inmez.
 ------------------------------------------------------------------- */
 
 const AYLAR = [
@@ -46,14 +50,13 @@ function temiz(deger, sinir = 120) {
 }
 
 function mesajKur(govde) {
-  const tip = govde.tip === 'talep' ? 'talep' : 'rezervasyon';
-  const baslik = tip === 'talep'
-    ? '📝 Yeni rezervasyon talebi (onay bekliyor)'
-    : '📌 Yeni rezervasyon';
+  const talepMi = govde.tip === 'talep';
 
-  const satirlar = [
-    baslik,
-    '',
+  const baslik = talepMi
+    ? 'Yeni talep (onay bekliyor)'
+    : 'Yeni rezervasyon';
+
+  const govdeSatirlari = [
     `Yer: ${temiz(govde.location)}`,
     `Tarih: ${tarihYaz(govde.date)}`,
     `Ders: ${temiz(govde.lessonLabel, 40)} (${temiz(govde.block, 10)})`,
@@ -61,70 +64,83 @@ function mesajKur(govde) {
     `Etkinlik: ${temiz(govde.activity)}`,
   ];
 
-  return satirlar.join('\n');
+  return { talepMi, baslik, metin: govdeSatirlari.join('\n') };
 }
 
-async function telegramaGonder(token, chatId, metin) {
-  const cevap = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+/* ---------------- ntfy.sh ---------------- */
+
+/* ntfy başlıkları HTTP başlığı olarak gider; HTTP başlıkları yalnız
+   ASCII taşır. Türkçe harfleri kaybetmemek için RFC 2047 ile
+   kodluyoruz — ntfy bunu çözüp düzgün gösteriyor. */
+function basligiKodla(metin) {
+  return `=?UTF-8?B?${Buffer.from(metin, 'utf-8').toString('base64')}?=`;
+}
+
+async function ntfyGonder(topic, { talepMi, baslik, metin }) {
+  return fetch(`https://ntfy.sh/${encodeURIComponent(topic)}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+      Title: basligiKodla(baslik),
+      Tags: talepMi ? 'memo' : 'pushpin',
+      Priority: talepMi ? 'default' : 'high',
+    },
+    body: metin,
+  });
+}
+
+/* ---------------- Telegram ---------------- */
+
+async function telegramGonder(token, chatId, { baslik, metin }) {
+  return fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     /* parse_mode yok: mesaj düz metin gider, böylece öğretmen adındaki
        _ * [ ] gibi karakterler Telegram'da hata çıkarmaz. */
     body: JSON.stringify({
       chat_id: chatId,
-      text: metin,
+      text: `${baslik}\n\n${metin}`,
       disable_web_page_preview: true,
     }),
   });
-  return cevap;
 }
 
-/* Kurulum yardımcısı: sohbet numarası henüz ayarlanmadıysa, botun
-   kendisine gelen son mesajlardan numarayı bulup söyler.
-   Numara ayarlandıktan sonra bu yardım kapanır. */
-async function sohbetNumarasiBul(token) {
-  try {
-    const cevap = await fetch(`https://api.telegram.org/bot${token}/getUpdates`);
-    const veri = await cevap.json();
-    if (!veri || !veri.ok || !Array.isArray(veri.result)) return null;
-    for (let i = veri.result.length - 1; i >= 0; i--) {
-      const sohbet = veri.result[i]?.message?.chat;
-      if (sohbet && sohbet.id) {
-        return { id: String(sohbet.id), ad: sohbet.first_name || sohbet.title || '' };
-      }
-    }
-    return null;
-  } catch (e) {
-    return null;
+/* ---------------- ortak ---------------- */
+
+function kanallar() {
+  const liste = [];
+  if (process.env.NTFY_TOPIC) {
+    liste.push({ ad: 'ntfy', calistir: (m) => ntfyGonder(process.env.NTFY_TOPIC, m) });
   }
+  if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHAT_ID) {
+    liste.push({
+      ad: 'telegram',
+      calistir: (m) => telegramGonder(
+        process.env.TELEGRAM_BOT_TOKEN,
+        process.env.TELEGRAM_CHAT_ID,
+        m
+      ),
+    });
+  }
+  return liste;
 }
 
 export default async function handler(req, res) {
-  const token = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
+  const acikKanallar = kanallar();
 
   /* ---- GET: kurulum durumunu göster ---- */
   if (req.method === 'GET') {
-    if (!token) {
+    if (acikKanallar.length === 0) {
       return res.status(200).json({
         hazir: false,
-        eksik: 'TELEGRAM_BOT_TOKEN',
-        not: 'Vercel > Settings > Environment Variables bölümüne ekle.',
+        not: 'Vercel > Settings > Environment Variables bolumune NTFY_TOPIC ekle, sonra yeniden yayinla (Redeploy).',
       });
     }
-    if (!chatId) {
-      const bulunan = await sohbetNumarasiBul(token);
-      return res.status(200).json({
-        hazir: false,
-        eksik: 'TELEGRAM_CHAT_ID',
-        bulunanSohbet: bulunan,
-        not: bulunan
-          ? `Bu numarayı TELEGRAM_CHAT_ID olarak ekle: ${bulunan.id}`
-          : 'Telegram\'da bota bir mesaj yaz, sonra bu adresi tazele.',
-      });
-    }
-    /* İkisi de hazır: artık teşhis bilgisi dökmüyoruz. */
-    return res.status(200).json({ hazir: true });
+    /* Kanal adını burada yazdırmıyoruz: bu adres herkese açık. */
+    return res.status(200).json({
+      hazir: true,
+      kanallar: acikKanallar.map((k) => k.ad),
+    });
   }
 
   if (req.method !== 'POST') {
@@ -134,7 +150,7 @@ export default async function handler(req, res) {
 
   /* Bildirim kapalıysa sessizce geç — rezervasyonun kendisi zaten
      kaydedildi, bildirim yüzünden kullanıcıya hata göstermeyelim. */
-  if (!token || !chatId) {
+  if (acikKanallar.length === 0) {
     return res.status(200).json({ gonderildi: false, sebep: 'yapilandirilmadi' });
   }
 
@@ -146,16 +162,27 @@ export default async function handler(req, res) {
     return res.status(400).json({ hata: 'govde_okunamadi' });
   }
 
-  try {
-    const cevap = await telegramaGonder(token, chatId, mesajKur(govde));
-    if (!cevap.ok) {
-      const metin = await cevap.text();
-      console.error('Telegram reddetti:', cevap.status, metin.slice(0, 300));
-      return res.status(200).json({ gonderildi: false, sebep: 'telegram_reddetti' });
+  const mesaj = mesajKur(govde);
+
+  /* Bir kanal patlarsa diğeri yine denensin diye hepsini birlikte
+     çalıştırıp sonuçlara tek tek bakıyoruz. */
+  const sonuclar = await Promise.allSettled(
+    acikKanallar.map((k) => k.calistir(mesaj))
+  );
+
+  const basarili = [];
+  for (let i = 0; i < sonuclar.length; i++) {
+    const ad = acikKanallar[i].ad;
+    const s = sonuclar[i];
+    if (s.status === 'fulfilled' && s.value && s.value.ok) {
+      basarili.push(ad);
+    } else {
+      const sebep = s.status === 'rejected'
+        ? s.reason
+        : `HTTP ${s.value && s.value.status}`;
+      console.error(`Bildirim gonderilemedi (${ad}):`, sebep);
     }
-    return res.status(200).json({ gonderildi: true });
-  } catch (e) {
-    console.error('Telegram\'a ulaşılamadı:', e);
-    return res.status(200).json({ gonderildi: false, sebep: 'ulasilamadi' });
   }
+
+  return res.status(200).json({ gonderildi: basarili.length > 0, kanallar: basarili });
 }
