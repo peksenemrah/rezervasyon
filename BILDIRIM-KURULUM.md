@@ -38,47 +38,29 @@ Play Store'da **ntfy** diye ara — simgesi yeşil zil olan, geliştirici
 
 Listede kanal adı görünüyorsa tamamdır.
 
-## 3. Vercel'e kanal adını gir
+## 3. Vercel — YAPILDI ✓
 
-Vercel paneli → `rezervasyon` projesi → **Settings** → **Environment Variables**
-→ yeni kayıt:
+`NTFY_TOPIC` değeri Production, Preview ve Development ortamlarının üçüne de
+girildi ve yayına alındı. Senin bu adımda yapman gereken bir şey yok.
 
-| Name | Value |
-|---|---|
-| `NTFY_TOPIC` | `cg-rez-935byvu5qt` |
-
-Production / Preview / Development — üçü de işaretli olsun. **Save**.
+Kontrol etmek istersen `https://rezervasyon-seven.vercel.app/api/bildir`
+adresi `{"hazir":true,"kanallar":["ntfy"]}` dönmeli.
 
 ---
 
-## Yayına alma
-
-```bash
-cd ~/rezervasyon
-git push origin main
-```
-
-Vercel otomatik deploy eder.
-
-> **Önemli:** Ortam değişkenini deploy'dan sonra eklediysen yeni bir deploy
-> gerekir. Panelde **Deployments** → en üstteki → **Redeploy**.
-
 ## Deneme
 
-1. `https://rezervasyon-seven.vercel.app/api/bildir` adresini aç.
-   `{"hazir":true,"kanallar":["ntfy"]}` görmelisin.
-   - `{"hazir":false...}` görüyorsan 3. adım eksik ya da redeploy yapılmadı.
-2. Siteden bir rezervasyon yap. Telefonuna birkaç saniye içinde şu düşer:
+Siteden bir rezervasyon yap. Telefonuna birkaç saniye içinde şu düşer:
 
-   ```
-   Yeni rezervasyon
+```
+Yeni rezervasyon
 
-   Yer: Akıl ve Zeka Oyunları Sınıfı
-   Tarih: 17 Eylül 2026 Perşembe
-   Ders: 6. Ders (ÖĞLE)
-   Öğretmen: 2/C - Neşe Dilber
-   Etkinlik: Zeka Oyunları Kulüp Saati
-   ```
+Yer: Akıl ve Zeka Oyunları Sınıfı
+Tarih: 17 Eylül 2026 Perşembe
+Ders: 6. Ders (ÖĞLE)
+Öğretmen: 2/C - Neşe Dilber
+Etkinlik: Zeka Oyunları Kulüp Saati
+```
 
 Talep geldiğinde başlık "Yeni talep (onay bekliyor)" olur ve bildirim
 daha sessiz gelir; rezervasyon bildirimi yüksek öncelikli gider.
