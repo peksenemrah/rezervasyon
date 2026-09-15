@@ -62,7 +62,7 @@ export const MobileSlideOver: React.FC<MobileSlideOverProps> = ({
             style={{ borderColor: 'var(--line)', background: 'var(--paper)' }}
           >
             <Users className="w-4 h-4 text-teal-800" />
-            <span>Öğretmen Listesi & İmza Sirküsü</span>
+            <span>Öğretmen Listesi</span>
           </button>
 
           <button

@@ -121,7 +121,7 @@ export const Header: React.FC<HeaderProps> = ({
               background: 'var(--panel)',
               color: 'var(--ink)',
             }}
-            title="Öğretmen Listesi ve İmza Sirküsü"
+            title="Öğretmen Listesi"
           >
             <Users className="w-4 h-4 text-teal-800" />
             <span>Öğretmen Listesi</span>

@@ -1120,7 +1120,7 @@ export default function App() {
         onLogin={handleLogin}
       />
 
-      {/* Teacher List & Signature Sheet Modal */}
+      {/* Teacher List Modal */}
       <TeacherListModal
         isOpen={showTeacherListModal}
         onClose={() => setShowTeacherListModal(false)}
