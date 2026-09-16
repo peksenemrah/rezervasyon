@@ -93,6 +93,8 @@ export interface Settings {
   lessonTimes: LessonTimes;
   teachers?: TeacherClassItem[];
   firebaseConfig?: FirebaseConfig;
+  /** Bahçede aynı saatte kaç şube olabilir (varsayılan 2). */
+  bahceKapasitesi?: number;
 }
 
 export interface DayInfo {

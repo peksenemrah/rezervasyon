@@ -863,6 +863,49 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 <p className="text-xs sm:text-sm font-medium mb-4" style={{ color: 'var(--ink-soft)' }}>
                   Rezervasyon açmak istediğiniz mekanları yönetin.
                 </p>
+
+                {/* Bahçe, aynı saatte birden fazla şube alabilen tek mekan.
+                    Kaç şube alacağı buradan ayarlanır. */}
+                <div
+                  className="rounded-2xl border p-4 mb-5"
+                  style={{ background: 'var(--paper-2)', borderColor: 'var(--line)' }}
+                >
+                  <div className="text-sm font-bold mb-1" style={{ color: 'var(--ink)' }}>
+                    Bahçe kapasitesi
+                  </div>
+                  <p className="text-xs font-medium mb-3" style={{ color: 'var(--ink-soft)' }}>
+                    Bahçede aynı ders saatinde en fazla kaç şube olabilir? Her şube haftada
+                    2 ders bahçe kullanabilir; bu kuralı yalnızca yönetici aşabilir.
+                  </p>
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4].map((n) => {
+                      const seciliMi = (settings.bahceKapasitesi ?? 2) === n;
+                      return (
+                        <button
+                          key={n}
+                          onClick={() =>
+                            onSaveSettings(
+                              { bahceKapasitesi: n },
+                              `Bahçe kapasitesi ${n} şube olarak ayarlandı`
+                            )
+                          }
+                          className="flex-1 py-2.5 rounded-xl font-bold text-sm border transition-colors"
+                          style={
+                            seciliMi
+                              ? { background: 'var(--teal-dark)', color: '#fff', borderColor: 'var(--teal-dark)' }
+                              : { background: 'var(--panel)', color: 'var(--ink)', borderColor: 'var(--line)' }
+                          }
+                        >
+                          {n} şube
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="text-[11px] font-semibold mt-2.5" style={{ color: 'var(--ink-soft)' }}>
+                    Kapasiteyi düşürmek mevcut kayıtları silmez; fazlalık kayıtlar yerinde kalır,
+                    yalnızca yeni rezervasyon alınamaz.
+                  </p>
+                </div>
                 <div className="flex gap-2 mb-5">
                   <input
                     value={newLocationInput}

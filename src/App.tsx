@@ -12,6 +12,11 @@ import {
   TeacherClassItem,
 } from './types';
 import {
+  BAHCE,
+  yerAyari,
+  birDortSinifMi,
+  bookingDocIdSirali,
+  haftaBasi,
   DEFAULT_SETTINGS,
   INITIAL_SAMPLE_BOOKINGS,
   INITIAL_SAMPLE_TALEPLER,
@@ -44,6 +49,7 @@ import { bildirYeniRezervasyon, bildirYeniTalep, bildirIptalTalebi } from './bil
 import { Header } from './components/Header';
 import { ScheduleGrid } from './components/ScheduleGrid';
 import { CellModal } from './components/CellModal';
+import { BahceCellModal } from './components/BahceCellModal';
 import { SettingsModal } from './components/SettingsModal';
 import { TaleplerModal } from './components/TaleplerModal';
 import { IptalTalepleriModal } from './components/IptalTalepleriModal';
@@ -229,6 +235,11 @@ export default function App() {
           const merged = { ...prev, ...gelen } as Settings;
           if (!merged.adminPassword || merged.adminPassword === '123456') {
             merged.adminPassword = 'cg2026';
+          }
+          /* Bahçe sekmesi bulut ayarlarında yoksa ekle — eski kayıtlarda
+             yalnızca iki salon var, güncelleme sonrası kaybolmasın. */
+          if (Array.isArray(merged.locations) && !merged.locations.includes(BAHCE)) {
+            merged.locations = [...merged.locations, BAHCE];
           }
           yazOnbellek('rz_onbellek_ayarlar', merged);
           return merged;
@@ -421,6 +432,46 @@ export default function App() {
     [bookings, activeLocation]
   );
 
+  /* ---------------- BAHÇE KURALLARI ----------------
+     Bahçe diğer yerlerden üç noktada ayrılır: aynı saate birden fazla
+     şube girebilir, şube başına haftalık kota vardır ve yalnızca
+     1-4. sınıf şubeleri seçilebilir. */
+  const aktifYerAyari = useMemo(
+    () => yerAyari(activeLocation, settings.bahceKapasitesi),
+    [activeLocation, settings.bahceKapasitesi]
+  );
+
+  /* Bir hücredeki tüm kayıtlar (kapasitesi 1 olan yerlerde en fazla bir tane). */
+  const findBookings = useCallback(
+    (day: DayInfo, lesson: Lesson): Booking[] => {
+      if (!day || !lesson) return [];
+      return bookings
+        .filter(
+          (b) =>
+            b.location === activeLocation &&
+            b.date === day.dateStr &&
+            b.lessonLabel === lesson.label &&
+            b.block === lesson.block
+        )
+        .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    },
+    [bookings, activeLocation]
+  );
+
+  /* Bir şubenin ilgili haftada bu yerde kaç dersi var. */
+  const haftalikKullanim = useCallback(
+    (teacher: string, dateStr: string, location: string): Booking[] => {
+      const hafta = haftaBasi(dateStr);
+      return bookings.filter(
+        (b) =>
+          b.location === location &&
+          b.teacher === teacher &&
+          haftaBasi(b.date) === hafta
+      );
+    },
+    [bookings]
+  );
+
   const taleplerListesi = useMemo(() => {
     return (Object.entries(talepler) as [string, Talep][])
       .map(([key, t]) => ({ ...t, key }))
@@ -539,12 +590,69 @@ export default function App() {
   // Booking Actions (Direct reservation creation by anyone + management deletion)
   const handleSaveBooking = async (teacher: string, activity: string) => {
     if (!editingCell) return;
-    const id = bookingDocId(
-      activeLocation,
-      editingCell.dateStr,
-      editingCell.lesson.block,
-      editingCell.lesson.label
-    );
+
+    const ayar = yerAyari(activeLocation, settings.bahceKapasitesi);
+    let id: string;
+
+    if (ayar.kapasite > 1) {
+      /* ---- Kapasitesi birden fazla olan yer (bahçe) ---- */
+      const mevcut = findBookings(editingCell, editingCell.lesson);
+
+      if (mevcut.length >= ayar.kapasite) {
+        setToastMsg(`Bu saat dolu (${ayar.kapasite}/${ayar.kapasite}). Başka bir saat seçin.`);
+        return;
+      }
+
+      /* Aynı şube aynı saate ikinci kez giremez. */
+      if (mevcut.some((b) => b.teacher === teacher)) {
+        setToastMsg('Bu şube zaten bu saate kayıtlı.');
+        return;
+      }
+
+      /* Haftalık kota — yöneticinin aşma yetkisi var. */
+      if (ayar.haftalikKota > 0 && role !== 'admin') {
+        const kullanim = haftalikKullanim(teacher, editingCell.dateStr, activeLocation);
+        if (kullanim.length >= ayar.haftalikKota) {
+          setToastMsg(
+            `${teacher} bu hafta ${ayar.haftalikKota} ders hakkını doldurdu. Yönetimden istisna isteyebilirsiniz.`
+          );
+          return;
+        }
+      }
+
+      /* Boş sırayı bul: s1, s2, s3... */
+      const doluIdler = new Set(mevcut.map((b) => b.id));
+      let sira = 1;
+      while (sira <= ayar.kapasite) {
+        const aday = bookingDocIdSirali(
+          activeLocation,
+          editingCell.dateStr,
+          editingCell.lesson.block,
+          editingCell.lesson.label,
+          sira
+        );
+        if (!doluIdler.has(aday)) break;
+        sira++;
+      }
+      if (sira > ayar.kapasite) {
+        setToastMsg('Bu saatte boş yer kalmadı.');
+        return;
+      }
+      id = bookingDocIdSirali(
+        activeLocation,
+        editingCell.dateStr,
+        editingCell.lesson.block,
+        editingCell.lesson.label,
+        sira
+      );
+    } else {
+      id = bookingDocId(
+        activeLocation,
+        editingCell.dateStr,
+        editingCell.lesson.block,
+        editingCell.lesson.label
+      );
+    }
     const newBooking: Booking = {
       id,
       location: activeLocation,
@@ -572,9 +680,8 @@ export default function App() {
      Öğretmen iptal istediğinde rezervasyon SİLİNMEZ; yalnızca bir talep
      kaydı oluşur ve yönetime bildirim gider. Silme işlemi yönetim
      onayladığında gerçekleşir. */
-  const handleIptalTalebiGonder = async (isteyen: string, sebep: string) => {
-    if (!editingCell) return;
-    const b = findBooking(editingCell, editingCell.lesson);
+  const handleIptalTalebiGonder = async (bookingId: string, isteyen: string, sebep: string) => {
+    const b = bookings.find((x) => x.id === bookingId);
     if (!b) return;
 
     /* Aynı rezervasyon için bekleyen talep varsa ikincisini oluşturma. */
@@ -1176,6 +1283,8 @@ export default function App() {
           morningLessons={morningLessons}
           afternoonLessons={afternoonLessons}
           findBooking={findBooking}
+          findBookings={findBookings}
+          slotKapasitesi={aktifYerAyari.kapasite}
           findTalep={findTalep}
           onCellClick={setEditingCell}
           role={role}
@@ -1212,8 +1321,29 @@ export default function App() {
       />
 
       {/* Cell Detail / Booking / Request Modal */}
+      {/* Bahçe hücresi kendi penceresini kullanır (çok kayıtlı + kotalı) */}
+      <BahceCellModal
+        editingCell={aktifYerAyari.kapasite > 1 ? editingCell : null}
+        onClose={() => setEditingCell(null)}
+        slotBookings={editingCell ? findBookings(editingCell, editingCell.lesson) : []}
+        kapasite={aktifYerAyari.kapasite}
+        haftalikKota={aktifYerAyari.haftalikKota}
+        role={role}
+        teachers={teachers}
+        haftalikSayi={(teacher) =>
+          editingCell
+            ? haftalikKullanim(teacher, editingCell.dateStr, activeLocation).length
+            : 0
+        }
+        bekleyenIptalVarMi={iptalTalebiVarMi}
+        onSaveBooking={handleSaveBooking}
+        onDeleteBooking={handleDeleteBookingById}
+        onIptalTalebiGonder={handleIptalTalebiGonder}
+        onOpenAuth={() => setShowAuthModal(true)}
+      />
+
       <CellModal
-        editingCell={editingCell}
+        editingCell={aktifYerAyari.kapasite > 1 ? null : editingCell}
         onClose={() => setEditingCell(null)}
         currentBooking={currentBooking}
         currentTalep={currentTalep}
@@ -1224,7 +1354,10 @@ export default function App() {
         onDeleteBooking={handleDeleteCurrentBooking}
         onOpenAuth={() => setShowAuthModal(true)}
         bekleyenIptalTalebi={currentBooking ? iptalTalebiVarMi(currentBooking.id) : false}
-        onIptalTalebiGonder={handleIptalTalebiGonder}
+        onIptalTalebiGonder={(isteyen, sebep) => {
+          const b = currentBooking;
+          if (b) handleIptalTalebiGonder(b.id, isteyen, sebep);
+        }}
       />
 
       {/* Settings Modal (Admin) */}

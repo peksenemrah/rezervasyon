@@ -4,7 +4,45 @@ import { DEFAULT_TEACHERS } from './data/defaultTeachers';
 export const SISTEM_ADI = "Cevdet Güçlüer İlkokulu Rezervasyon Sistemi";
 export const SISTEM_KISA = "CGİ";
 export const DEFAULT_ADMIN_PASSWORD = "cg2026";
-export const DEFAULT_LOCATIONS = ["Toplantı Salonu", "Akıl Zeka Oyunları Sınıfı"];
+/* Bahçe diger yerlerden farkli calisir: ayni saate birden fazla sube
+   girebilir, sube basina haftalik kota vardir ve yalnizca 1-4. sinif
+   subeleri rezervasyon yapabilir. Kurallar YER_AYARLARI'nda. */
+export const BAHCE = "Bahçe";
+
+export const DEFAULT_LOCATIONS = ["Toplantı Salonu", "Akıl Zeka Oyunları Sınıfı", BAHCE];
+
+export interface YerAyari {
+  /** Ayni saatte kac sube olabilir. */
+  kapasite: number;
+  /** Sube basina haftada kac ders (0 = sinirsiz). */
+  haftalikKota: number;
+  /** Yalnizca 1-4. sinif subeleri secilebilsin mi. */
+  sadeceSiniflar: boolean;
+}
+
+export const VARSAYILAN_YER_AYARI: YerAyari = {
+  kapasite: 1,
+  haftalikKota: 0,
+  sadeceSiniflar: false,
+};
+
+export const BAHCE_VARSAYILAN_KAPASITE = 2;
+export const BAHCE_HAFTALIK_KOTA = 2;
+
+export function yerAyari(location: string, bahceKapasitesi?: number): YerAyari {
+  if (location !== BAHCE) return VARSAYILAN_YER_AYARI;
+  const kap = Number(bahceKapasitesi);
+  return {
+    kapasite: Number.isFinite(kap) && kap >= 1 && kap <= 6 ? Math.floor(kap) : BAHCE_VARSAYILAN_KAPASITE,
+    haftalikKota: BAHCE_HAFTALIK_KOTA,
+    sadeceSiniflar: true,
+  };
+}
+
+/** 1/A, 2/C, 4/H gibi 1-4. sinif subesi mi? Anasinifi ve branslar haric. */
+export function birDortSinifMi(className: string): boolean {
+  return /^[1-4]\//.test((className || '').trim());
+}
 
 // 14 Eylül 2026 – 25 Haziran 2027
 export const SISTEM_BASLANGIC = new Date(2026, 8, 14);
@@ -103,6 +141,35 @@ export function isInSystemRange(d: Date): boolean {
 
 export function bookingDocId(location: string, dateStr: string, block: string, label: string): string {
   return `${slugify(location)}-${dateStr}-${block}-${label}`.replace(/\s+/g, '-');
+}
+
+/* Kapasitesi 1'den buyuk yerlerde ayni saate birden fazla kayit girer.
+   Kimligin sonuna sira ekliyoruz: ...-s1, ...-s2. Kapasitesi 1 olan
+   yerlerde eski kimlik bicimi aynen korunur, boylece mevcut kayitlar
+   etkilenmez. */
+export function bookingDocIdSirali(
+  location: string,
+  dateStr: string,
+  block: string,
+  label: string,
+  sira: number
+): string {
+  const temel = bookingDocId(location, dateStr, block, label);
+  return sira <= 1 && location !== BAHCE ? temel : `${temel}-s${sira}`;
+}
+
+/** Verilen gunun icinde bulundugu haftanin pazartesisi (YYYY-MM-DD). */
+export function haftaBasi(dateStr: string): string {
+  const parcalar = (dateStr || '').split('-');
+  if (parcalar.length !== 3) return dateStr || '';
+  const d = new Date(Number(parcalar[0]), Number(parcalar[1]) - 1, Number(parcalar[2]));
+  if (Number.isNaN(d.getTime())) return dateStr;
+  const gun = d.getDay();               // 0 pazar, 1 pazartesi
+  const geri = gun === 0 ? 6 : gun - 1; // pazartesiye kac gun geri
+  d.setDate(d.getDate() - geri);
+  const ay = String(d.getMonth() + 1).padStart(2, '0');
+  const gn = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${ay}-${gn}`;
 }
 
 export function trUpper(str: string): string {

@@ -25,11 +25,42 @@ interface ScheduleGridProps {
   morningLessons: Lesson[];
   afternoonLessons: Lesson[];
   findBooking: (day: DayInfo, lesson: Lesson) => Booking | null;
+  /** Bir hücredeki tüm kayıtlar — kapasitesi 1'den büyük yerler için */
+  findBookings: (day: DayInfo, lesson: Lesson) => Booking[];
+  /** Aynı saate kaç kayıt sığar (bahçede 2-3, diğerlerinde 1) */
+  slotKapasitesi: number;
   findTalep: (day: DayInfo, lesson: Lesson) => Talep | null;
   onCellClick: (cell: EditingCell) => void;
   role: Role;
   isSnapshotMode: boolean;
 }
+
+/* Kapasitesi 1'den büyük yerlerde (bahçe) bir hücrede birden fazla şube
+   olur. Hepsini küçük satırlar hâlinde ve "2/2" sayacıyla gösteriyoruz. */
+const CokluHucre: React.FC<{ kayitlar: Booking[]; kapasite: number }> = ({ kayitlar, kapasite }) => {
+  if (kayitlar.length === 0) return null;
+  const doluMu = kayitlar.length >= kapasite;
+  return (
+    <div className="w-full px-1 space-y-0.5">
+      {kayitlar.map((b) => (
+        <div
+          key={b.id}
+          className="text-[11px] sm:text-xs font-bold leading-tight truncate text-center"
+          style={{ color: 'var(--ink)' }}
+          title={`${b.teacher}${b.activity ? ' — ' + b.activity : ''}`}
+        >
+          {trUpper(b.teacher)}
+        </div>
+      ))}
+      <div
+        className="text-[10px] font-bold text-center mt-0.5"
+        style={{ color: doluMu ? 'var(--brick)' : 'var(--teal-dark)' }}
+      >
+        {kayitlar.length}/{kapasite}
+      </div>
+    </div>
+  );
+};
 
 export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
   activeLocation,
@@ -46,6 +77,8 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
   morningLessons,
   afternoonLessons,
   findBooking,
+  findBookings,
+  slotKapasitesi,
   findTalep,
   onCellClick,
   role,
@@ -260,12 +293,16 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                 {lesson.start}–{lesson.end}
               </div>
               {weekDays.map((day) => {
-                const b = findBooking(day, lesson);
+                const kayitlar = slotKapasitesi > 1 ? findBookings(day, lesson) : [];
+                const b = slotKapasitesi > 1 ? (kayitlar[0] || null) : findBooking(day, lesson);
+                const cokluDolu = slotKapasitesi > 1 && kayitlar.length >= slotKapasitesi;
                 const t = findTalep(day, lesson);
                 const holiday = pickHolidayForBlock(day.dayHolidays, lesson.block);
                 const clickable = day.valid;
                 const bg = !day.valid
                   ? 'var(--paper-2)'
+                  : slotKapasitesi > 1 && kayitlar.length > 0
+                  ? (cokluDolu ? 'var(--ochre-tint)' : 'var(--teal-tint)')
                   : b
                   ? 'var(--ochre-tint)'
                   : t
@@ -288,7 +325,9 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                       minHeight: '4.5rem',
                     }}
                   >
-                    {b ? (
+                    {slotKapasitesi > 1 && kayitlar.length > 0 ? (
+                      <CokluHucre kayitlar={kayitlar} kapasite={slotKapasitesi} />
+                    ) : b ? (
                       <div className="text-center w-full px-1">
                         <div
                           className="text-sm font-bold leading-snug truncate"
@@ -394,12 +433,16 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                 <div className="text-[8px] font-mono leading-none mt-1 opacity-80">{lesson.start}</div>
               </div>
               {weekDays.map((day) => {
-                const b = findBooking(day, lesson);
+                const kayitlar = slotKapasitesi > 1 ? findBookings(day, lesson) : [];
+                const b = slotKapasitesi > 1 ? (kayitlar[0] || null) : findBooking(day, lesson);
+                const cokluDolu = slotKapasitesi > 1 && kayitlar.length >= slotKapasitesi;
                 const t = findTalep(day, lesson);
                 const holiday = pickHolidayForBlock(day.dayHolidays, lesson.block);
                 const clickable = day.valid;
                 const bg = !day.valid
                   ? 'var(--paper-2)'
+                  : slotKapasitesi > 1 && kayitlar.length > 0
+                  ? (cokluDolu ? 'var(--brick-tint)' : 'var(--teal-tint)')
                   : b
                   ? 'var(--brick-tint)'
                   : t
@@ -435,7 +478,18 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                     className="mobile-week-cell rounded-lg border cell-tap flex items-center justify-center overflow-hidden px-1 py-1.5 min-h-[48px]"
                     style={{ background: bg, borderColor: bd, opacity: day.valid ? 1 : 0.45 }}
                   >
-                    {b ? (
+                    {slotKapasitesi > 1 && kayitlar.length > 0 ? (
+                      <div className="w-full text-center leading-tight">
+                        {kayitlar.slice(0, 2).map((k) => (
+                          <div key={k.id} className="text-[8px] font-bold truncate" style={{ color: txt }}>
+                            {trUpper(k.teacher)}
+                          </div>
+                        ))}
+                        <div className="text-[7.5px] font-bold" style={{ color: txt }}>
+                          {kayitlar.length}/{slotKapasitesi}
+                        </div>
+                      </div>
+                    ) : b ? (
                       <div className="w-full text-center leading-tight">
                         <div className="text-[8.5px] font-bold truncate" style={{ color: txt }}>
                           {trUpper(b.teacher)}
