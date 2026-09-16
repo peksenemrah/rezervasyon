@@ -16,8 +16,10 @@ import {
   IPTAL_TALEBI_AKTIF,
   yerAyari,
   birDortSinifMi,
-  bookingDocIdSirali,
-  haftaBasi,
+  bahceSaatId,
+  gunNo,
+  GUN_ADLARI_TR,
+  HAFTALIK_TARIH,
   DEFAULT_SETTINGS,
   INITIAL_SAMPLE_BOOKINGS,
   INITIAL_SAMPLE_TALEPLER,
@@ -442,10 +444,29 @@ export default function App() {
     [activeLocation, settings.bahceKapasitesi]
   );
 
-  /* Bir hücredeki tüm kayıtlar (kapasitesi 1 olan yerlerde en fazla bir tane). */
+  /* Bir hücredeki tüm kayıtlar.
+
+     Bahçe kayıtları tarihe değil haftanın gününe bağlıdır: bir şube
+     saatini bir kez seçer, yönetim iptal edene kadar her hafta onundur.
+     Bu yüzden bahçede eşleştirme "gün" alanı üzerinden yapılır. */
   const findBookings = useCallback(
     (day: DayInfo, lesson: Lesson): Booking[] => {
       if (!day || !lesson) return [];
+
+      if (activeLocation === BAHCE) {
+        const g = gunNo(day.dateStr);
+        if (!g) return [];
+        return bookings
+          .filter(
+            (b) =>
+              b.location === BAHCE &&
+              b.gun === g &&
+              b.lessonLabel === lesson.label &&
+              b.block === lesson.block
+          )
+          .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+      }
+
       return bookings
         .filter(
           (b) =>
@@ -459,17 +480,11 @@ export default function App() {
     [bookings, activeLocation]
   );
 
-  /* Bir şubenin ilgili haftada bu yerde kaç dersi var. */
-  const haftalikKullanim = useCallback(
-    (teacher: string, dateStr: string, location: string): Booking[] => {
-      const hafta = haftaBasi(dateStr);
-      return bookings.filter(
-        (b) =>
-          b.location === location &&
-          b.teacher === teacher &&
-          haftaBasi(b.date) === hafta
-      );
-    },
+  /* Bir şubenin bahçedeki sabit saatleri. Haftalık değil, toplam sayılır:
+     saat bir kez alınır ve yönetim iptal edene kadar her hafta geçerlidir. */
+  const sabitSaatleri = useCallback(
+    (teacher: string): Booking[] =>
+      bookings.filter((b) => b.location === BAHCE && b.teacher === teacher),
     [bookings]
   );
 
@@ -596,7 +611,12 @@ export default function App() {
     let id: string;
 
     if (ayar.kapasite > 1) {
-      /* ---- Kapasitesi birden fazla olan yer (bahçe) ---- */
+      /* ---- Sabit saatli yer (bahçe) ---- */
+      const gun = gunNo(editingCell.dateStr);
+      if (!gun) {
+        setToastMsg('Bahçe yalnızca hafta içi kullanılabilir.');
+        return;
+      }
       const mevcut = findBookings(editingCell, editingCell.lesson);
 
       if (mevcut.length >= ayar.kapasite) {
@@ -610,12 +630,12 @@ export default function App() {
         return;
       }
 
-      /* Haftalık kota — yöneticinin aşma yetkisi var. */
+      /* Sabit saat hakkı — yöneticinin aşma yetkisi var. */
       if (ayar.haftalikKota > 0 && role !== 'admin') {
-        const kullanim = haftalikKullanim(teacher, editingCell.dateStr, activeLocation);
-        if (kullanim.length >= ayar.haftalikKota) {
+        const sahip = sabitSaatleri(teacher);
+        if (sahip.length >= ayar.haftalikKota) {
           setToastMsg(
-            `${teacher} bu hafta ${ayar.haftalikKota} ders hakkını doldurdu. Yönetimden istisna isteyebilirsiniz.`
+            `${teacher} ${ayar.haftalikKota} sabit bahçe saatini kullanıyor. Değişiklik için yönetime başvurun.`
           );
           return;
         }
@@ -625,13 +645,7 @@ export default function App() {
       const doluIdler = new Set(mevcut.map((b) => b.id));
       let sira = 1;
       while (sira <= ayar.kapasite) {
-        const aday = bookingDocIdSirali(
-          activeLocation,
-          editingCell.dateStr,
-          editingCell.lesson.block,
-          editingCell.lesson.label,
-          sira
-        );
+        const aday = bahceSaatId(gun, editingCell.lesson.block, editingCell.lesson.label, sira);
         if (!doluIdler.has(aday)) break;
         sira++;
       }
@@ -639,13 +653,7 @@ export default function App() {
         setToastMsg('Bu saatte boş yer kalmadı.');
         return;
       }
-      id = bookingDocIdSirali(
-        activeLocation,
-        editingCell.dateStr,
-        editingCell.lesson.block,
-        editingCell.lesson.label,
-        sira
-      );
+      id = bahceSaatId(gun, editingCell.lesson.block, editingCell.lesson.label, sira);
     } else {
       id = bookingDocId(
         activeLocation,
@@ -654,27 +662,40 @@ export default function App() {
         editingCell.lesson.label
       );
     }
+    const bahceMi = activeLocation === BAHCE;
     const newBooking: Booking = {
       id,
       location: activeLocation,
-      date: editingCell.dateStr,
+      /* Bahçede kayıt tarihe değil güne bağlı: her hafta geçerli. */
+      date: bahceMi ? HAFTALIK_TARIH : editingCell.dateStr,
+      ...(bahceMi ? { gun: gunNo(editingCell.dateStr) } : {}),
       lessonLabel: editingCell.lesson.label,
       block: editingCell.lesson.block,
       teacher,
-      activity: activity || (activeLocation.includes('Akıl') ? 'Akıl ve Zeka Oyunları Dersi' : 'Salon Etkinliği'),
+      activity:
+        activity ||
+        (bahceMi
+          ? 'Bahçe Kullanımı'
+          : activeLocation.includes('Akıl')
+          ? 'Akıl ve Zeka Oyunları Dersi'
+          : 'Salon Etkinliği'),
       timestamp: Date.now(),
     };
     const nextBookings = [...bookings.filter((b) => b.id !== id), newBooking];
     setBookings(nextBookings);
     yazOnbellek('rz_onbellek_rezervasyonlar', nextBookings);
     setEditingCell(null);
-    setToastMsg(`${teacher} rezervasyonu kaydedildi`);
+    setToastMsg(
+      bahceMi
+        ? `${teacher} — her ${GUN_ADLARI_TR[gunNo(editingCell.dateStr)] || ''} ${editingCell.lesson.label} sabit bahçe saati`
+        : `${teacher} rezervasyonu kaydedildi`
+    );
 
     // Sadece bu hücreyi yaz; listenin tamamını ezme.
     await yazBooking(newBooking);
 
     // Yöneticinin telefonuna Telegram bildirimi (beklemeden, sessizce).
-    bildirYeniRezervasyon(newBooking);
+    bildirYeniRezervasyon(newBooking, bahceMi ? GUN_ADLARI_TR[newBooking.gun || 0] : undefined);
   };
 
   /* ---------------- İPTAL TALEBİ AKIŞI ----------------
@@ -1331,10 +1352,11 @@ export default function App() {
         haftalikKota={aktifYerAyari.haftalikKota}
         role={role}
         teachers={teachers}
-        haftalikSayi={(teacher) =>
-          editingCell
-            ? haftalikKullanim(teacher, editingCell.dateStr, activeLocation).length
-            : 0
+        sabitSaatSayisi={(teacher) => sabitSaatleri(teacher).length}
+        sabitSaatOzeti={(teacher) =>
+          sabitSaatleri(teacher)
+            .map((b) => `${GUN_ADLARI_TR[b.gun || 0] || ''} ${b.lessonLabel}`)
+            .join(' · ')
         }
         bekleyenIptalVarMi={iptalTalebiVarMi}
         onSaveBooking={handleSaveBooking}

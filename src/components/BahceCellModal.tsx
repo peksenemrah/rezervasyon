@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { EditingCell, Booking, Role, TeacherClassItem } from '../types';
 import { X, Trash2, User, Search, Check, AlertCircle, Clock, Send, Users } from 'lucide-react';
-import { formatDateStrDisplay, trUpper, birDortSinifMi } from '../constants';
+import { trUpper, birDortSinifMi, GUN_ADLARI_TR, gunNo } from '../constants';
 
 interface BahceCellModalProps {
   editingCell: EditingCell | null;
@@ -12,8 +12,10 @@ interface BahceCellModalProps {
   haftalikKota: number;
   role: Role;
   teachers: TeacherClassItem[];
-  /** Bir şubenin bu haftaki bahçe kullanım sayısını verir */
-  haftalikSayi: (teacher: string) => number;
+  /** Bir şubenin kaç sabit bahçe saati var */
+  sabitSaatSayisi: (teacher: string) => number;
+  /** "Salı 3. Ders · Perşembe 5. Ders" gibi özet */
+  sabitSaatOzeti: (teacher: string) => string;
   bekleyenIptalVarMi: (bookingId: string) => boolean;
   onSaveBooking: (teacher: string, activity: string) => void;
   onDeleteBooking: (bookingId: string) => void;
@@ -33,7 +35,8 @@ export const BahceCellModal: React.FC<BahceCellModalProps> = ({
   haftalikKota,
   role,
   teachers,
-  haftalikSayi,
+  sabitSaatSayisi,
+  sabitSaatOzeti,
   bekleyenIptalVarMi,
   onSaveBooking,
   onDeleteBooking,
@@ -63,7 +66,8 @@ export const BahceCellModal: React.FC<BahceCellModalProps> = ({
 
   const dolu = slotBookings.length;
   const bosYer = Math.max(0, kapasite - dolu);
-  const formattedDate = formatDateStrDisplay(editingCell.dateStr);
+  const gun = gunNo(editingCell.dateStr);
+  const gunAdi = GUN_ADLARI_TR[gun] || '';
 
   /* Yalnızca 1-4. sınıf şubeleri. Anasınıfı ve branşlar bu sekmede yok. */
   const uygunSubeler = useMemo(() => {
@@ -106,10 +110,10 @@ export const BahceCellModal: React.FC<BahceCellModalProps> = ({
               Bahçe · {dolu}/{kapasite} dolu
             </span>
             <h3 className="font-display font-bold text-xl sm:text-2xl" style={{ color: 'var(--ink)' }}>
-              Bahçe Kullanımı
+              Her {gunAdi} · {editingCell.lesson?.label}
             </h3>
             <p className="text-xs font-semibold mt-0.5" style={{ color: 'var(--ink-soft)' }}>
-              {formattedDate} · {editingCell.lesson?.label} ({editingCell.lesson?.block})
+              Sabit bahçe saati — yönetim iptal edene kadar her hafta geçerlidir.
             </p>
           </div>
           <button
@@ -136,7 +140,7 @@ export const BahceCellModal: React.FC<BahceCellModalProps> = ({
         {dolu > 0 && (
           <div className="space-y-2 mb-4">
             <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--ink-soft)' }}>
-              Bu saatte bahçede
+              Her {gunAdi} bu saatte bahçede
             </div>
             {slotBookings.map((b) => {
               const iptalBekliyor = bekleyenIptalVarMi(b.id);
@@ -284,7 +288,7 @@ export const BahceCellModal: React.FC<BahceCellModalProps> = ({
               Bu saat dolu ({dolu}/{kapasite})
             </p>
             <p className="text-xs font-semibold mt-1" style={{ color: 'var(--ink-soft)' }}>
-              Başka bir saat seçebilirsiniz.
+              Her {gunAdi} bu saat başka şubelere ayrılmış. Boş bir saat seçin.
             </p>
           </div>
         ) : (
@@ -295,7 +299,7 @@ export const BahceCellModal: React.FC<BahceCellModalProps> = ({
                 Şube seçimi
               </div>
               <span className="text-[11px] font-bold" style={{ color: 'var(--teal-dark)' }}>
-                {bosYer} yer boş
+                {bosYer} sabit yer boş
               </span>
             </div>
 
@@ -321,8 +325,9 @@ export const BahceCellModal: React.FC<BahceCellModalProps> = ({
                 </div>
               ) : (
                 uygunSubeler.map((t) => {
-                  const kullanilan = haftalikSayi(etiket(t));
+                  const kullanilan = sabitSaatSayisi(etiket(t));
                   const kotaDoldu = haftalikKota > 0 && kullanilan >= haftalikKota;
+                  const ozet = sabitSaatOzeti(etiket(t));
                   const zatenVar = buSaatteVarMi(t);
                   const kapali = zatenVar || (kotaDoldu && role !== 'admin');
                   const seciliMi = secili?.id === t.id;
@@ -344,11 +349,11 @@ export const BahceCellModal: React.FC<BahceCellModalProps> = ({
                         </div>
                         <div className="text-[11px] font-semibold" style={{ color: kotaDoldu ? 'var(--brick)' : 'var(--ink-soft)' }}>
                           {zatenVar
-                            ? 'Bu saate zaten kayıtlı'
+                            ? 'Bu güne zaten kayıtlı'
                             : haftalikKota > 0
-                            ? `Bu hafta ${kullanilan}/${haftalikKota} ders${kotaDoldu ? ' · hak doldu' : ''}`
+                            ? `Sabit saat ${kullanilan}/${haftalikKota}${ozet ? ' · ' + ozet : ''}`
                             : ''}
-                          {kotaDoldu && role === 'admin' ? ' (yönetici aşabilir)' : ''}
+                          {kotaDoldu && role === 'admin' ? ' · yönetici aşabilir' : ''}
                         </div>
                       </div>
                       {seciliMi && <Check className="w-4 h-4 shrink-0" style={{ color: 'var(--teal-dark)' }} />}
@@ -385,8 +390,11 @@ export const BahceCellModal: React.FC<BahceCellModalProps> = ({
               className="w-full py-3.5 text-white font-bold rounded-xl transition-opacity hover:opacity-95"
               style={{ background: 'var(--teal-dark)' }}
             >
-              Bahçeyi Rezerve Et
+              Bu Saati Şubeme Ayır
             </button>
+            <p className="text-[11px] font-semibold text-center" style={{ color: 'var(--ink-soft)' }}>
+              Bu saat her {gunAdi} şubenize ayrılır. Değiştirmek için yönetime başvurun.
+            </p>
 
             {role !== 'admin' && onOpenAuth && (
               <button

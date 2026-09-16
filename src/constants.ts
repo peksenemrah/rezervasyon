@@ -32,15 +32,37 @@ export const VARSAYILAN_YER_AYARI: YerAyari = {
   sadeceSiniflar: false,
 };
 
+/* Bahçe kayitlari tarihe degil, HAFTANIN GUNUNE baglidir: bir sube
+   saatini bir kez secer, yonetim iptal edene kadar her hafta onundur.
+   Bu yuzden kayitlarin "date" alanina gercek tarih yerine bu isaret
+   yaziliyor ve gun "gun" alaninda (1 Pazartesi ... 5 Cuma) tutuluyor. */
+export const HAFTALIK_TARIH = 'HAFTALIK';
+
+/** "2026-09-17" -> 4 (Perşembe). Hafta sonu icin 0 doner. */
+export function gunNo(dateStr: string): number {
+  const p = (dateStr || '').split('-');
+  if (p.length !== 3) return 0;
+  const d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+  if (Number.isNaN(d.getTime())) return 0;
+  const g = d.getDay();           // 0 pazar ... 6 cumartesi
+  return g >= 1 && g <= 5 ? g : 0;
+}
+
+/** Sabit bahce saatinin kimligi. Tarih icermez — her hafta ayni kayit. */
+export function bahceSaatId(gun: number, block: string, label: string, sira: number): string {
+  return `bahce-haftalik-${gun}-${slugify(block)}-${slugify(label)}-s${sira}`;
+}
+
 export const BAHCE_VARSAYILAN_KAPASITE = 2;
-export const BAHCE_HAFTALIK_KOTA = 2;
+/** Bir subenin sahip olabilecegi sabit bahce saati sayisi. */
+export const BAHCE_SABIT_SAAT = 2;
 
 export function yerAyari(location: string, bahceKapasitesi?: number): YerAyari {
   if (location !== BAHCE) return VARSAYILAN_YER_AYARI;
   const kap = Number(bahceKapasitesi);
   return {
     kapasite: Number.isFinite(kap) && kap >= 1 && kap <= 6 ? Math.floor(kap) : BAHCE_VARSAYILAN_KAPASITE,
-    haftalikKota: BAHCE_HAFTALIK_KOTA,
+    haftalikKota: BAHCE_SABIT_SAAT,
     sadeceSiniflar: true,
   };
 }

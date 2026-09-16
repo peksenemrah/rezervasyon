@@ -23,7 +23,10 @@ export interface LessonTimes {
 export interface Booking {
   id: string;
   location: string;
-  date: string; // YYYY-MM-DD
+  /** YYYY-MM-DD — bahçenin sabit saatlerinde 'HAFTALIK' yazar. */
+  date: string;
+  /** Yalnızca sabit bahçe saatlerinde: 1 Pazartesi ... 5 Cuma. */
+  gun?: number;
   lessonLabel: string;
   block: 'SABAH' | 'ÖĞLE';
   teacher: string;

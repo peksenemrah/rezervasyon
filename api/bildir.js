@@ -53,14 +53,21 @@ function mesajKur(govde) {
   const tip = govde.tip;
   const iptalMi = tip === 'iptal';
   const talepMi = tip === 'talep';
+  const bahceMi = tip === 'bahce';
 
   let baslik = 'Yeni rezervasyon';
   if (iptalMi) baslik = 'İPTAL TALEBİ — onayın bekleniyor';
   else if (talepMi) baslik = 'Yeni talep (onay bekliyor)';
+  else if (bahceMi) baslik = 'Yeni sabit bahçe saati';
+
+  /* Bahçe saatleri tarihe değil haftanın gününe bağlı. */
+  const zamanSatiri = bahceMi
+    ? `Zaman: her ${temiz(govde.gunAdi, 20)}`
+    : `Tarih: ${tarihYaz(govde.date)}`;
 
   const govdeSatirlari = [
     `Yer: ${temiz(govde.location)}`,
-    `Tarih: ${tarihYaz(govde.date)}`,
+    zamanSatiri,
     `Ders: ${temiz(govde.lessonLabel, 40)} (${temiz(govde.block, 10)})`,
     `Öğretmen: ${temiz(govde.teacher)}`,
     `Etkinlik: ${temiz(govde.activity)}`,
@@ -73,6 +80,11 @@ function mesajKur(govde) {
     if (sebep) govdeSatirlari.push(`Gerekçe: ${sebep}`);
     govdeSatirlari.push('');
     govdeSatirlari.push('Rezervasyon SİLİNMEDİ. Sen onaylayana kadar yerinde duruyor.');
+  }
+
+  if (bahceMi) {
+    govdeSatirlari.push('');
+    govdeSatirlari.push('Bu saat, iptal edilene kadar her hafta bu şubenin.');
   }
 
   return { iptalMi, talepMi, baslik, metin: govdeSatirlari.join('\n') };

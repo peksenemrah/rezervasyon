@@ -11,7 +11,7 @@ import type { Booking, IptalTalebi, Talep } from './types';
    bildirim yüzünden hata ekranı görmemeli.
 ------------------------------------------------------------------- */
 
-type BildirimTipi = 'rezervasyon' | 'talep' | 'iptal';
+type BildirimTipi = 'rezervasyon' | 'talep' | 'iptal' | 'bahce';
 
 function gonder(tip: BildirimTipi, kayit: Booking | Talep | IptalTalebi, ek?: Record<string, string>): void {
   /* Yerel geliştirmede (vite dev) /api/bildir yoktur; 404 döner ve
@@ -39,7 +39,12 @@ function gonder(tip: BildirimTipi, kayit: Booking | Talep | IptalTalebi, ek?: Re
   }
 }
 
-export function bildirYeniRezervasyon(booking: Booking): void {
+export function bildirYeniRezervasyon(booking: Booking, gunAdi?: string): void {
+  /* Bahçe kayıtları tarihe değil güne bağlı; bildirimde de öyle görünmeli. */
+  if (gunAdi) {
+    gonder('bahce', booking, { gunAdi });
+    return;
+  }
   gonder('rezervasyon', booking);
 }
 
