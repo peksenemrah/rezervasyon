@@ -8,7 +8,7 @@ import {
   goOnline,
   Database,
 } from 'firebase/database';
-import type { Booking, Settings, Talep, TeacherClassItem } from './types';
+import type { Booking, IptalTalebi, Settings, Talep, TeacherClassItem } from './types';
 
 /* ------------------------------------------------------------------
    FIREBASE YAPILANDIRMASI
@@ -58,6 +58,7 @@ export function guvenliAnahtar(id: string): string {
 export interface BulutDinleyicileri {
   onBookings?: (b: Booking[]) => void;
   onTalepler?: (t: Record<string, Talep>) => void;
+  onIptalTalepleri?: (t: Record<string, IptalTalebi>) => void;
   onSettings?: (s: Partial<Settings>) => void;
   onTeachers?: (t: TeacherClassItem[]) => void;
   onDurum?: (durum: 'senkron' | 'baglaniyor' | 'yerel') => void;
@@ -103,6 +104,14 @@ export function bulutaBaglan(h: BulutDinleyicileri): () => void {
     araclar.push(
       onValue(ref(database, 'talepler'), (snap) => {
         h.onTalepler!((snap.val() as Record<string, Talep>) || {});
+      })
+    );
+  }
+
+  if (h.onIptalTalepleri) {
+    araclar.push(
+      onValue(ref(database, 'iptalTalepleri'), (snap) => {
+        h.onIptalTalepleri!((snap.val() as Record<string, IptalTalebi>) || {});
       })
     );
   }
@@ -193,6 +202,32 @@ export async function yazTalepler(talepler: Record<string, Talep>): Promise<void
     await set(ref(database, 'talepler'), temiz);
   } catch (e) {
     console.warn('Talepler buluta yazılamadı:', e);
+  }
+}
+
+/** Tek iptal talebini yazar/gunceller. Diger talepleri etkilemez.
+    Bu yazma sessizce yutulmamali: talep ulasmadiysa ogretmen bunu bilmeli,
+    o yuzden basari durumunu geri donduruyoruz. */
+export async function yazIptalTalebi(talep: IptalTalebi): Promise<boolean> {
+  const database = getDb();
+  if (!database) return false;
+  try {
+    await set(ref(database, `iptalTalepleri/${guvenliAnahtar(talep.key)}`), talep);
+    return true;
+  } catch (e) {
+    console.warn('İptal talebi buluta yazılamadı:', e);
+    return false;
+  }
+}
+
+/** Tek iptal talebini siler. */
+export async function silIptalTalebi(key: string): Promise<void> {
+  const database = getDb();
+  if (!database) return;
+  try {
+    await remove(ref(database, `iptalTalepleri/${guvenliAnahtar(key)}`));
+  } catch (e) {
+    console.warn('İptal talebi buluttan silinemedi:', e);
   }
 }
 

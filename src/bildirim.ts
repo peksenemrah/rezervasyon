@@ -1,4 +1,4 @@
-import type { Booking, Talep } from './types';
+import type { Booking, IptalTalebi, Talep } from './types';
 
 /* ------------------------------------------------------------------
    TELEGRAM BİLDİRİMİ — tarayıcı tarafı
@@ -11,9 +11,9 @@ import type { Booking, Talep } from './types';
    bildirim yüzünden hata ekranı görmemeli.
 ------------------------------------------------------------------- */
 
-type BildirimTipi = 'rezervasyon' | 'talep';
+type BildirimTipi = 'rezervasyon' | 'talep' | 'iptal';
 
-function gonder(tip: BildirimTipi, kayit: Booking | Talep): void {
+function gonder(tip: BildirimTipi, kayit: Booking | Talep | IptalTalebi, ek?: Record<string, string>): void {
   /* Yerel geliştirmede (vite dev) /api/bildir yoktur; 404 döner ve
      sessizce yutulur. Canlıda Vercel bu adresi karşılar. */
   try {
@@ -29,6 +29,7 @@ function gonder(tip: BildirimTipi, kayit: Booking | Talep): void {
         block: kayit.block,
         teacher: kayit.teacher,
         activity: kayit.activity,
+        ...(ek || {}),
       }),
     }).catch(() => {
       /* Ağ yoksa ya da adres kapalıysa: sorun değil, sessiz geç. */
@@ -44,4 +45,12 @@ export function bildirYeniRezervasyon(booking: Booking): void {
 
 export function bildirYeniTalep(talep: Talep): void {
   gonder('talep', talep);
+}
+
+/** Bir öğretmen rezervasyonunun iptalini istedi — yönetimin onayı gerekiyor. */
+export function bildirIptalTalebi(talep: IptalTalebi): void {
+  gonder('iptal', talep, {
+    isteyen: talep.isteyen,
+    sebep: talep.sebep || '',
+  });
 }

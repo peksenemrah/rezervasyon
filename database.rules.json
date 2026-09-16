@@ -19,6 +19,13 @@
       ".read": true,
       ".write": true
     },
+    "iptalTalepleri": {
+      ".read": true,
+      ".write": true,
+      "$key": {
+        ".validate": "newData.hasChildren(['key','bookingId','durum','olusturmaZamani'])"
+      }
+    },
     "$diger": {
       ".read": false,
       ".write": false

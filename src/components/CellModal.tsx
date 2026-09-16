@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { EditingCell, Booking, Talep, Role, TeacherClassItem } from '../types';
-import { X, Trash2, Calendar, User, BookOpen, Search, Check, Plus, AlertCircle, ShieldAlert, Sparkles } from 'lucide-react';
+import { X, Trash2, Calendar, User, BookOpen, Search, Check, Plus, AlertCircle, ShieldAlert, Sparkles, Clock, Send } from 'lucide-react';
 import { formatDateStrDisplay, trUpper } from '../constants';
 import { DEFAULT_TEACHERS, sortTeachers } from '../data/defaultTeachers';
 
@@ -15,6 +15,9 @@ interface CellModalProps {
   onSaveBooking: (teacher: string, activity: string) => void;
   onDeleteBooking: () => void;
   onOpenAuth?: () => void;
+  /* Bu hücredeki rezervasyon için zaten bekleyen bir iptal talebi var mı */
+  bekleyenIptalTalebi?: boolean;
+  onIptalTalebiGonder?: (isteyen: string, sebep: string) => void;
 }
 
 export const CellModal: React.FC<CellModalProps> = ({
@@ -27,6 +30,8 @@ export const CellModal: React.FC<CellModalProps> = ({
   onSaveBooking,
   onDeleteBooking,
   onOpenAuth,
+  bekleyenIptalTalebi = false,
+  onIptalTalebiGonder,
 }) => {
   if (!editingCell) return null;
 
@@ -38,6 +43,18 @@ export const CellModal: React.FC<CellModalProps> = ({
   const [manualTeacher, setManualTeacher] = useState('');
   const [activityInput, setActivityInput] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+
+  /* İptal talebi formu */
+  const [iptalFormuAcik, setIptalFormuAcik] = useState(false);
+  const [iptalIsteyen, setIptalIsteyen] = useState(() => {
+    try {
+      return localStorage.getItem('rz_iptal_isim') || '';
+    } catch (e) {
+      return '';
+    }
+  });
+  const [iptalSebep, setIptalSebep] = useState('');
+  const [iptalHata, setIptalHata] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
   // Admin delete confirmation state
@@ -190,6 +207,18 @@ export const CellModal: React.FC<CellModalProps> = ({
             {/* DELETION AUTHORITY SECTION ("yönetim ekranından silme yetkisi olmalı") */}
             {role === 'admin' ? (
               <div className="space-y-2 mb-3">
+                {bekleyenIptalTalebi && (
+                  <div
+                    className="p-3.5 rounded-xl border text-xs flex items-start gap-2.5"
+                    style={{ background: 'var(--ochre-tint)', borderColor: 'var(--ochre)', color: 'var(--ink)' }}
+                  >
+                    <Clock className="w-4 h-4 shrink-0 mt-0.5" style={{ color: 'var(--ochre)' }} />
+                    <p className="font-semibold leading-relaxed">
+                      Bu rezervasyon için <strong>bekleyen bir iptal talebi</strong> var.
+                      İptal Talepleri ekranından onaylayabilir ya da reddedebilirsiniz.
+                    </p>
+                  </div>
+                )}
                 {showDeleteConfirm ? (
                   <div className="p-3.5 rounded-xl border border-red-200 bg-red-50 text-center space-y-2">
                     <p className="text-xs font-bold text-red-900">
@@ -223,24 +252,132 @@ export const CellModal: React.FC<CellModalProps> = ({
                 )}
               </div>
             ) : (
-              <div className="p-3.5 rounded-xl border bg-stone-100/90 text-stone-700 text-xs mb-4 flex items-start gap-2.5">
-                <ShieldAlert className="w-4 h-4 text-stone-500 shrink-0 mt-0.5" />
-                <div className="space-y-1">
-                  <p className="font-semibold leading-relaxed">
-                    Rezervasyon silme ve düzenleme yetkisi yalnızca <strong>okul yönetimine</strong> aittir.
-                  </p>
-                  {onOpenAuth && (
-                    <button
-                      onClick={() => {
-                        onClose();
-                        onOpenAuth();
-                      }}
-                      className="text-teal-800 font-bold underline hover:text-teal-950 text-xs inline-block"
-                    >
-                      Yönetici girişi yaparak sil &rarr;
-                    </button>
-                  )}
+              <div className="space-y-2.5 mb-4">
+                <div className="p-3.5 rounded-xl border bg-stone-100/90 text-stone-700 text-xs flex items-start gap-2.5">
+                  <ShieldAlert className="w-4 h-4 text-stone-500 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="font-semibold leading-relaxed">
+                      Rezervasyon silme yetkisi yalnızca <strong>okul yönetimine</strong> aittir.
+                      Bu saatin iptalini isteyebilir, kararı yönetime bırakabilirsiniz.
+                    </p>
+                    {onOpenAuth && (
+                      <button
+                        onClick={() => {
+                          onClose();
+                          onOpenAuth();
+                        }}
+                        className="text-teal-800 font-bold underline hover:text-teal-950 text-xs inline-block"
+                      >
+                        Yönetici girişi yaparak sil &rarr;
+                      </button>
+                    )}
+                  </div>
                 </div>
+
+                {/* ---------- İPTAL TALEBİ ---------- */}
+                {bekleyenIptalTalebi ? (
+                  <div
+                    className="p-3.5 rounded-xl border text-xs flex items-start gap-2.5"
+                    style={{ background: 'var(--ochre-tint)', borderColor: 'var(--ochre)', color: 'var(--ink)' }}
+                  >
+                    <Clock className="w-4 h-4 shrink-0 mt-0.5" style={{ color: 'var(--ochre)' }} />
+                    <p className="font-semibold leading-relaxed">
+                      Bu saat için <strong>iptal talebi gönderildi</strong>. Yönetim onaylayana kadar
+                      rezervasyon yerinde kalır.
+                    </p>
+                  </div>
+                ) : onIptalTalebiGonder ? (
+                  iptalFormuAcik ? (
+                    <div
+                      className="p-4 rounded-xl border space-y-2.5"
+                      style={{ background: 'var(--paper-2)', borderColor: 'var(--line)' }}
+                    >
+                      <p className="text-xs font-bold" style={{ color: 'var(--ink)' }}>
+                        İptal talebi gönder
+                      </p>
+
+                      <div>
+                        <label className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--ink-soft)' }}>
+                          Adınız / Sınıfınız
+                        </label>
+                        <input
+                          type="text"
+                          value={iptalIsteyen}
+                          onChange={(e) => {
+                            setIptalIsteyen(e.target.value);
+                            setIptalHata('');
+                          }}
+                          placeholder="Örn: 3/D - Feride Nur Aktan"
+                          className="w-full mt-1 px-3 py-2.5 rounded-lg border text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-500/40"
+                          style={{ background: 'var(--panel)', borderColor: 'var(--line)', color: 'var(--ink)' }}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--ink-soft)' }}>
+                          Gerekçe (isteğe bağlı)
+                        </label>
+                        <input
+                          type="text"
+                          value={iptalSebep}
+                          onChange={(e) => setIptalSebep(e.target.value)}
+                          placeholder="Örn: Etkinlik başka güne alındı"
+                          className="w-full mt-1 px-3 py-2.5 rounded-lg border text-sm font-medium outline-none focus:ring-2 focus:ring-teal-500/40"
+                          style={{ background: 'var(--panel)', borderColor: 'var(--line)', color: 'var(--ink)' }}
+                        />
+                      </div>
+
+                      {iptalHata && (
+                        <div className="text-xs font-bold flex items-center gap-1.5" style={{ color: 'var(--brick)' }}>
+                          <AlertCircle className="w-3.5 h-3.5" />
+                          <span>{iptalHata}</span>
+                        </div>
+                      )}
+
+                      <div className="flex gap-2 pt-0.5">
+                        <button
+                          onClick={() => {
+                            const ad = iptalIsteyen.trim();
+                            if (ad.length < 3) {
+                              setIptalHata('Lütfen adınızı ve sınıfınızı yazın.');
+                              return;
+                            }
+                            try {
+                              localStorage.setItem('rz_iptal_isim', ad);
+                            } catch (e) {}
+                            onIptalTalebiGonder(ad, iptalSebep.trim());
+                            setIptalFormuAcik(false);
+                            setIptalSebep('');
+                          }}
+                          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-white text-xs font-bold transition-opacity hover:opacity-95"
+                          style={{ background: 'var(--brick)' }}
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                          <span>Talebi Gönder</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            setIptalFormuAcik(false);
+                            setIptalHata('');
+                          }}
+                          className="px-4 py-2.5 rounded-lg text-xs font-bold bg-stone-200 hover:bg-stone-300 text-stone-800 transition-colors"
+                        >
+                          Vazgeç
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      id="btn-iptal-talebi"
+                      onClick={() => setIptalFormuAcik(true)}
+                      className="w-full py-3.5 font-bold rounded-xl flex items-center justify-center gap-2 transition-colors border"
+                      style={{ background: 'var(--brick-tint)', color: 'var(--brick)', borderColor: 'rgba(179,58,58,0.2)' }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span>İptal Talebi Gönder</span>
+                    </button>
+                  )
+                ) : null}
               </div>
             )}
 

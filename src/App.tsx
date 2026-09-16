@@ -5,6 +5,7 @@ import {
   Settings,
   Booking,
   Talep,
+  IptalTalebi,
   DayInfo,
   Lesson,
   EditingCell,
@@ -34,15 +35,18 @@ import {
   silBooking,
   yenidenBaglan,
   yazTalepler,
+  yazIptalTalebi,
+  silIptalTalebi,
   yazSettings,
   yazTeachers,
 } from './firebase';
-import { bildirYeniRezervasyon, bildirYeniTalep } from './bildirim';
+import { bildirYeniRezervasyon, bildirYeniTalep, bildirIptalTalebi } from './bildirim';
 import { Header } from './components/Header';
 import { ScheduleGrid } from './components/ScheduleGrid';
 import { CellModal } from './components/CellModal';
 import { SettingsModal } from './components/SettingsModal';
 import { TaleplerModal } from './components/TaleplerModal';
+import { IptalTalepleriModal } from './components/IptalTalepleriModal';
 import { TaleplerimModal } from './components/TaleplerimModal';
 import { SnapshotBanner } from './components/SnapshotBanner';
 import { ConflictModal } from './components/ConflictModal';
@@ -111,6 +115,12 @@ export default function App() {
     return cleaned;
   });
 
+  /* İptal talepleri. Rezervasyonlardan ayrı bir düğümde durur; bir talep
+     oluşması rezervasyona dokunmaz, yalnızca yönetime iş düşürür. */
+  const [iptalTalepleri, setIptalTalepleri] = useState<Record<string, IptalTalebi>>(() =>
+    okuOnbellek<Record<string, IptalTalebi>>('rz_onbellek_iptal_talepleri', {})
+  );
+
   // State: Teachers & Classes (sorted 1/A, 1/B ... 1/G, 2/A ...)
   const [teachers, setTeachers] = useState<TeacherClassItem[]>(() =>
     sortTeachers(okuOnbellek('rz_onbellek_ogretmenler', DEFAULT_TEACHERS))
@@ -134,6 +144,8 @@ export default function App() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showTaleplerModal, setShowTaleplerModal] = useState(false);
+  const [showIptalTalepleriModal, setShowIptalTalepleriModal] = useState(false);
+  const [iptalIslemHata, setIptalIslemHata] = useState('');
   const [showTaleplerimModal, setShowTaleplerimModal] = useState(false);
   const [showTeacherListModal, setShowTeacherListModal] = useState(false);
   const [editingCell, setEditingCell] = useState<EditingCell | null>(null);
@@ -207,6 +219,10 @@ export default function App() {
       onTalepler: (gelen) => {
         setTalepler(gelen);
         yazOnbellek('rz_onbellek_talepler', gelen);
+      },
+      onIptalTalepleri: (gelen) => {
+        setIptalTalepleri(gelen);
+        yazOnbellek('rz_onbellek_iptal_talepleri', gelen);
       },
       onSettings: (gelen) => {
         setSettings((prev) => {
@@ -416,6 +432,27 @@ export default function App() {
     [taleplerListesi]
   );
 
+  const iptalTalepListesi = useMemo(
+    () =>
+      (Object.entries(iptalTalepleri) as [string, IptalTalebi][]).map(([key, t]) => ({
+        ...t,
+        key,
+      })),
+    [iptalTalepleri]
+  );
+
+  const bekleyenIptalSayisi = useMemo(
+    () => iptalTalepListesi.filter((t) => t.durum === 'bekliyor').length,
+    [iptalTalepListesi]
+  );
+
+  /* Bir rezervasyon için bekleyen iptal talebi var mı? */
+  const iptalTalebiVarMi = useCallback(
+    (bookingId: string) =>
+      iptalTalepListesi.some((t) => t.bookingId === bookingId && t.durum === 'bekliyor'),
+    [iptalTalepListesi]
+  );
+
   const findTalep = useCallback(
     (day: DayInfo, lesson: Lesson): Talep | null => {
       if (!day.valid) return null;
@@ -531,6 +568,92 @@ export default function App() {
     bildirYeniRezervasyon(newBooking);
   };
 
+  /* ---------------- İPTAL TALEBİ AKIŞI ----------------
+     Öğretmen iptal istediğinde rezervasyon SİLİNMEZ; yalnızca bir talep
+     kaydı oluşur ve yönetime bildirim gider. Silme işlemi yönetim
+     onayladığında gerçekleşir. */
+  const handleIptalTalebiGonder = async (isteyen: string, sebep: string) => {
+    if (!editingCell) return;
+    const b = findBooking(editingCell, editingCell.lesson);
+    if (!b) return;
+
+    /* Aynı rezervasyon için bekleyen talep varsa ikincisini oluşturma. */
+    if (iptalTalebiVarMi(b.id)) {
+      setEditingCell(null);
+      setToastMsg('Bu saat için zaten bekleyen bir iptal talebi var.');
+      return;
+    }
+
+    const key = `iptal-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    const talep: IptalTalebi = {
+      key,
+      bookingId: b.id,
+      location: b.location,
+      date: b.date,
+      lessonLabel: b.lessonLabel,
+      block: b.block,
+      teacher: b.teacher,
+      activity: b.activity,
+      isteyen,
+      sebep: sebep || undefined,
+      durum: 'bekliyor',
+      olusturmaZamani: Date.now(),
+    };
+
+    setEditingCell(null);
+
+    const yazildi = await yazIptalTalebi(talep);
+    if (!yazildi) {
+      /* Bulut kabul etmediyse talep yok demektir. Sahte onay verme. */
+      setToastMsg('İptal talebi gönderilemedi. Lütfen tekrar deneyin.');
+      return;
+    }
+
+    setIptalTalepleri((prev) => ({ ...prev, [key]: talep }));
+    setToastMsg('İptal talebiniz yönetime iletildi.');
+    bildirIptalTalebi(talep);
+  };
+
+  /* Yönetim onayladı: rezervasyon şimdi silinir, talep kapanır. */
+  const handleIptalOnayla = async (t: IptalTalebi) => {
+    setIptalIslemHata('');
+    const halaVar = bookings.some((b) => b.id === t.bookingId);
+
+    if (halaVar) {
+      const kalan = bookings.filter((b) => b.id !== t.bookingId);
+      setBookings(kalan);
+      yazOnbellek('rz_onbellek_rezervasyonlar', kalan);
+      await silBooking(t.bookingId);
+    }
+
+    const kapali: IptalTalebi = { ...t, durum: 'onaylandi', cevapZamani: Date.now() };
+    const yazildi = await yazIptalTalebi(kapali);
+    if (yazildi) {
+      setIptalTalepleri((prev) => ({ ...prev, [t.key]: kapali }));
+    } else {
+      setIptalIslemHata('Talep kapatılamadı, ama rezervasyon silindi. Sayfayı yenileyip tekrar deneyin.');
+    }
+
+    setToastMsg(
+      halaVar
+        ? 'İptal onaylandı, rezervasyon silindi.'
+        : 'Rezervasyon zaten silinmişti; talep kapatıldı.'
+    );
+  };
+
+  /* Yönetim reddetti: rezervasyon yerinde kalır. */
+  const handleIptalReddet = async (t: IptalTalebi) => {
+    setIptalIslemHata('');
+    const kapali: IptalTalebi = { ...t, durum: 'reddedildi', cevapZamani: Date.now() };
+    const yazildi = await yazIptalTalebi(kapali);
+    if (!yazildi) {
+      setIptalIslemHata('Talep güncellenemedi. Lütfen tekrar deneyin.');
+      return;
+    }
+    setIptalTalepleri((prev) => ({ ...prev, [t.key]: kapali }));
+    setToastMsg('İptal talebi reddedildi. Rezervasyon yerinde kaldı.');
+  };
+
   const handleDeleteBookingById = async (id: string) => {
     const updated = bookings.filter((x) => x.id !== id);
     setBookings(updated);
@@ -539,6 +662,15 @@ export default function App() {
 
     // Sadece bu kaydı sil; listenin tamamını ezme.
     await silBooking(id);
+
+    /* Bu rezervasyon için bekleyen iptal talebi varsa artık konusuz kaldı. */
+    for (const t of iptalTalepListesi) {
+      if (t.bookingId === id && t.durum === 'bekliyor') {
+        const kapali: IptalTalebi = { ...t, durum: 'onaylandi', cevapZamani: Date.now() };
+        setIptalTalepleri((prev) => ({ ...prev, [t.key]: kapali }));
+        await yazIptalTalebi(kapali);
+      }
+    }
   };
 
   const handleDeleteCurrentBooking = () => {
@@ -960,6 +1092,23 @@ export default function App() {
         </button>
       )}
 
+      {/* İptal Talepleri düğmesi (Yönetim) — yalnızca bekleyen talep varken görünür */}
+      {role === 'admin' && bekleyenIptalSayisi > 0 && (
+        <button
+          id="btn-iptal-talepleri-floating"
+          onClick={() => setShowIptalTalepleriModal(true)}
+          className="no-snapshot flex fixed z-40 right-4 md:right-6 bottom-24 md:bottom-24 items-center gap-2 pl-4 pr-5 py-3.5 rounded-full text-white font-bold text-sm shadow-2xl transition-all hover:scale-105 active:scale-95"
+          style={{ background: 'var(--ochre)' }}
+        >
+          <Bell className="w-5 h-5" />
+          <span className="hidden sm:inline">İptal Talepleri</span>
+          <span className="sm:hidden">İptal</span>
+          <span className="min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-bold flex items-center justify-center bg-white text-amber-800 shadow-xs">
+            {bekleyenIptalSayisi}
+          </span>
+        </button>
+      )}
+
       {/* Desktop Floating Talepler Button (Admin) */}
       {role === 'admin' && (
         <button
@@ -1074,6 +1223,8 @@ export default function App() {
         onSaveBooking={handleSaveBooking}
         onDeleteBooking={handleDeleteCurrentBooking}
         onOpenAuth={() => setShowAuthModal(true)}
+        bekleyenIptalTalebi={currentBooking ? iptalTalebiVarMi(currentBooking.id) : false}
+        onIptalTalebiGonder={handleIptalTalebiGonder}
       />
 
       {/* Settings Modal (Admin) */}
@@ -1110,6 +1261,19 @@ export default function App() {
         onApprove={handleApproveTalep}
         onReject={handleRejectTalep}
         taleplerIslemHata={taleplerIslemHata}
+      />
+
+      {/* İptal Talepleri (Yönetim) */}
+      <IptalTalepleriModal
+        isOpen={showIptalTalepleriModal && role === 'admin'}
+        onClose={() => {
+          setShowIptalTalepleriModal(false);
+          setIptalIslemHata('');
+        }}
+        talepler={iptalTalepListesi}
+        onApprove={handleIptalOnayla}
+        onReject={handleIptalReddet}
+        islemHata={iptalIslemHata}
       />
 
       {/* Teacher Requests Tracking Modal */}

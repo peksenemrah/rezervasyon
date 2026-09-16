@@ -44,6 +44,27 @@ export interface Talep {
   cevapZamani?: number;
 }
 
+/* Rezervasyon iptal talebi.
+
+   Öğretmen "iptal et" dediğinde rezervasyon SİLİNMEZ; burada bir talep
+   oluşur ve yönetim onaylayana kadar rezervasyon yerinde durur.
+   Kayıtlar bookings'ten ayrı bir düğümde (iptalTalepleri) tutulur. */
+export interface IptalTalebi {
+  key: string;
+  bookingId: string;           // iptali istenen rezervasyonun id'si
+  location: string;
+  date: string;                // YYYY-MM-DD
+  lessonLabel: string;
+  block: 'SABAH' | 'ÖĞLE';
+  teacher: string;             // rezervasyonun sahibi
+  activity: string;
+  isteyen: string;             // talebi gönderen kişi
+  sebep?: string;              // isteğe bağlı gerekçe
+  durum: 'bekliyor' | 'onaylandi' | 'reddedildi';
+  olusturmaZamani: number;
+  cevapZamani?: number;
+}
+
 export interface FirebaseConfig {
   apiKey?: string;
   authDomain?: string;

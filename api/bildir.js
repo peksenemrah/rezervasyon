@@ -50,11 +50,13 @@ function temiz(deger, sinir = 120) {
 }
 
 function mesajKur(govde) {
-  const talepMi = govde.tip === 'talep';
+  const tip = govde.tip;
+  const iptalMi = tip === 'iptal';
+  const talepMi = tip === 'talep';
 
-  const baslik = talepMi
-    ? 'Yeni talep (onay bekliyor)'
-    : 'Yeni rezervasyon';
+  let baslik = 'Yeni rezervasyon';
+  if (iptalMi) baslik = 'İPTAL TALEBİ — onayın bekleniyor';
+  else if (talepMi) baslik = 'Yeni talep (onay bekliyor)';
 
   const govdeSatirlari = [
     `Yer: ${temiz(govde.location)}`,
@@ -64,7 +66,16 @@ function mesajKur(govde) {
     `Etkinlik: ${temiz(govde.activity)}`,
   ];
 
-  return { talepMi, baslik, metin: govdeSatirlari.join('\n') };
+  /* İptal talebinde kimin istediği ve gerekçesi asıl bilgidir. */
+  if (iptalMi) {
+    govdeSatirlari.push(`İsteyen: ${temiz(govde.isteyen) || 'belirtilmedi'}`);
+    const sebep = temiz(govde.sebep, 200);
+    if (sebep) govdeSatirlari.push(`Gerekçe: ${sebep}`);
+    govdeSatirlari.push('');
+    govdeSatirlari.push('Rezervasyon SİLİNMEDİ. Sen onaylayana kadar yerinde duruyor.');
+  }
+
+  return { iptalMi, talepMi, baslik, metin: govdeSatirlari.join('\n') };
 }
 
 /* ---------------- ntfy.sh ---------------- */
@@ -76,14 +87,14 @@ function basligiKodla(metin) {
   return `=?UTF-8?B?${Buffer.from(metin, 'utf-8').toString('base64')}?=`;
 }
 
-async function ntfyGonder(topic, { talepMi, baslik, metin }) {
+async function ntfyGonder(topic, { iptalMi, talepMi, baslik, metin }) {
   return fetch(`https://ntfy.sh/${encodeURIComponent(topic)}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'text/plain; charset=utf-8',
       Title: basligiKodla(baslik),
-      Tags: talepMi ? 'memo' : 'pushpin',
-      Priority: talepMi ? 'default' : 'high',
+      Tags: iptalMi ? 'warning' : (talepMi ? 'memo' : 'pushpin'),
+      Priority: iptalMi ? 'urgent' : (talepMi ? 'default' : 'high'),
     },
     body: metin,
   });
