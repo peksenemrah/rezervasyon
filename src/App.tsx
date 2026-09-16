@@ -13,6 +13,7 @@ import {
 } from './types';
 import {
   BAHCE,
+  IPTAL_TALEBI_AKTIF,
   yerAyari,
   birDortSinifMi,
   bookingDocIdSirali,
@@ -1200,7 +1201,7 @@ export default function App() {
       )}
 
       {/* İptal Talepleri düğmesi (Yönetim) — yalnızca bekleyen talep varken görünür */}
-      {role === 'admin' && bekleyenIptalSayisi > 0 && (
+      {IPTAL_TALEBI_AKTIF && role === 'admin' && bekleyenIptalSayisi > 0 && (
         <button
           id="btn-iptal-talepleri-floating"
           onClick={() => setShowIptalTalepleriModal(true)}
@@ -1338,7 +1339,7 @@ export default function App() {
         bekleyenIptalVarMi={iptalTalebiVarMi}
         onSaveBooking={handleSaveBooking}
         onDeleteBooking={handleDeleteBookingById}
-        onIptalTalebiGonder={handleIptalTalebiGonder}
+        onIptalTalebiGonder={IPTAL_TALEBI_AKTIF ? handleIptalTalebiGonder : undefined}
         onOpenAuth={() => setShowAuthModal(true)}
       />
 
@@ -1354,10 +1355,14 @@ export default function App() {
         onDeleteBooking={handleDeleteCurrentBooking}
         onOpenAuth={() => setShowAuthModal(true)}
         bekleyenIptalTalebi={currentBooking ? iptalTalebiVarMi(currentBooking.id) : false}
-        onIptalTalebiGonder={(isteyen, sebep) => {
-          const b = currentBooking;
-          if (b) handleIptalTalebiGonder(b.id, isteyen, sebep);
-        }}
+        onIptalTalebiGonder={
+          IPTAL_TALEBI_AKTIF
+            ? (isteyen, sebep) => {
+                const b = currentBooking;
+                if (b) handleIptalTalebiGonder(b.id, isteyen, sebep);
+              }
+            : undefined
+        }
       />
 
       {/* Settings Modal (Admin) */}
@@ -1398,7 +1403,7 @@ export default function App() {
 
       {/* İptal Talepleri (Yönetim) */}
       <IptalTalepleriModal
-        isOpen={showIptalTalepleriModal && role === 'admin'}
+        isOpen={IPTAL_TALEBI_AKTIF && showIptalTalepleriModal && role === 'admin'}
         onClose={() => {
           setShowIptalTalepleriModal(false);
           setIptalIslemHata('');

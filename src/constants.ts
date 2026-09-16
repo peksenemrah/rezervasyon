@@ -7,6 +7,12 @@ export const DEFAULT_ADMIN_PASSWORD = "cg2026";
 /* Bahçe diger yerlerden farkli calisir: ayni saate birden fazla sube
    girebilir, sube basina haftalik kota vardir ve yalnizca 1-4. sinif
    subeleri rezervasyon yapabilir. Kurallar YER_AYARLARI'nda. */
+/* İptal talebi akışı, Realtime Database'de "iptalTalepleri" düğümüne
+   yazma izni verilene kadar kapalı. Kural yayınlandıktan sonra burayı
+   true yapmak yeterli — kodun geri kalanı hazır.
+   Yayınlamak icin: npx firebase-tools login && firebase deploy --only database */
+export const IPTAL_TALEBI_AKTIF = false;
+
 export const BAHCE = "Bahçe";
 
 export const DEFAULT_LOCATIONS = ["Toplantı Salonu", "Akıl Zeka Oyunları Sınıfı", BAHCE];

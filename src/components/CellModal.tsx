@@ -258,7 +258,9 @@ export const CellModal: React.FC<CellModalProps> = ({
                   <div className="space-y-1">
                     <p className="font-semibold leading-relaxed">
                       Rezervasyon silme yetkisi yalnızca <strong>okul yönetimine</strong> aittir.
-                      Bu saatin iptalini isteyebilir, kararı yönetime bırakabilirsiniz.
+                      {onIptalTalebiGonder
+                        ? ' Bu saatin iptalini isteyebilir, kararı yönetime bırakabilirsiniz.'
+                        : ''}
                     </p>
                     {onOpenAuth && (
                       <button

@@ -17,7 +17,8 @@ interface BahceCellModalProps {
   bekleyenIptalVarMi: (bookingId: string) => boolean;
   onSaveBooking: (teacher: string, activity: string) => void;
   onDeleteBooking: (bookingId: string) => void;
-  onIptalTalebiGonder: (bookingId: string, isteyen: string, sebep: string) => void;
+  /** Akış kapalıyken verilmez; verilmezse iptal bağlantısı hiç görünmez. */
+  onIptalTalebiGonder?: (bookingId: string, isteyen: string, sebep: string) => void;
   onOpenAuth?: () => void;
 }
 
@@ -234,7 +235,7 @@ export const BahceCellModal: React.FC<BahceCellModalProps> = ({
                             try {
                               localStorage.setItem('rz_iptal_isim', ad);
                             } catch (e) {}
-                            onIptalTalebiGonder(b.id, ad, iptalSebep.trim());
+                            onIptalTalebiGonder?.(b.id, ad, iptalSebep.trim());
                             setIptalHedefi(null);
                             setIptalSebep('');
                           }}
@@ -255,7 +256,7 @@ export const BahceCellModal: React.FC<BahceCellModalProps> = ({
                         </button>
                       </div>
                     </div>
-                  ) : (
+                  ) : onIptalTalebiGonder ? (
                     <div className="mt-2.5 pt-2.5 border-t" style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
                       <button
                         onClick={() => setIptalHedefi(b.id)}
@@ -266,7 +267,7 @@ export const BahceCellModal: React.FC<BahceCellModalProps> = ({
                         İptal talebi gönder
                       </button>
                     </div>
-                  )}
+                  ) : null}
                 </div>
               );
             })}
