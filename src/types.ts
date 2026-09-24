@@ -116,3 +116,14 @@ export interface EditingCell extends DayInfo {
   lesson: Lesson;
   holiday?: Holiday | null;
 }
+
+export interface Yonlendirme {
+  key?: string;
+  ogrenciAd: string;
+  sinif: string;
+  numara: string;
+  neden: string;
+  yapilanCalismalar: string;
+  yonlendirenOgretmen: string;
+  olusturmaZamani: number;
+}

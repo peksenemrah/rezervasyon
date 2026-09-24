@@ -57,6 +57,8 @@ import { SettingsModal } from './components/SettingsModal';
 import { TaleplerModal } from './components/TaleplerModal';
 import { IptalTalepleriModal } from './components/IptalTalepleriModal';
 import { TaleplerimModal } from './components/TaleplerimModal';
+import { RehberlikFormModal } from './components/RehberlikFormModal';
+import { RehberlikPanelModal } from './components/RehberlikPanelModal';
 import { SnapshotBanner } from './components/SnapshotBanner';
 import { ConflictModal } from './components/ConflictModal';
 import { AuthModal } from './components/AuthModal';
@@ -156,6 +158,8 @@ export default function App() {
   const [showIptalTalepleriModal, setShowIptalTalepleriModal] = useState(false);
   const [iptalIslemHata, setIptalIslemHata] = useState('');
   const [showTaleplerimModal, setShowTaleplerimModal] = useState(false);
+  const [showRehberlikForm, setShowRehberlikForm] = useState(false);
+  const [showRehberlikPanel, setShowRehberlikPanel] = useState(false);
   const [showTeacherListModal, setShowTeacherListModal] = useState(false);
   const [editingCell, setEditingCell] = useState<EditingCell | null>(null);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -307,6 +311,8 @@ export default function App() {
       !!conflictDialog ||
       showTaleplerModal ||
       showTaleplerimModal ||
+      showRehberlikForm ||
+      showRehberlikPanel ||
       showTeacherListModal;
 
     if (anyModalOpen) {
@@ -1286,6 +1292,8 @@ export default function App() {
         onLogout={handleLogout}
         onOpenMobileMenu={() => setShowMobileMenu(true)}
         onRetrySync={yenidenBaglan}
+        onOpenRehberlikForm={() => setShowRehberlikForm(true)}
+        onOpenRehberlikPanel={() => setShowRehberlikPanel(true)}
       />
 
       {/* Main Table Content */}
@@ -1437,6 +1445,18 @@ export default function App() {
       />
 
       {/* Teacher Requests Tracking Modal */}
+      <RehberlikFormModal
+        isOpen={showRehberlikForm}
+        onClose={() => setShowRehberlikForm(false)}
+        teachers={teachers}
+        onSonuc={(m) => setToastMsg(m)}
+      />
+
+      <RehberlikPanelModal
+        isOpen={showRehberlikPanel}
+        onClose={() => setShowRehberlikPanel(false)}
+      />
+
       <TaleplerimModal
         isOpen={showTaleplerimModal}
         onClose={() => setShowTaleplerimModal(false)}
