@@ -1,6 +1,6 @@
 import React from 'react';
 import { Settings, Role } from '../types';
-import { Camera, Settings as SettingsIcon, LogIn, LogOut, Menu, Cloud, CloudOff, RefreshCw, Users } from 'lucide-react';
+import { Camera, Settings as SettingsIcon, LogIn, LogOut, Menu, Cloud, CloudOff, RefreshCw, Users, HeartHandshake, Inbox } from 'lucide-react';
 import { SISTEM_ADI, SISTEM_KISA } from '../constants';
 
 interface HeaderProps {
@@ -16,6 +16,8 @@ interface HeaderProps {
   onLogout: () => void;
   onOpenMobileMenu: () => void;
   onRetrySync?: () => void;
+  onOpenRehberlikForm: () => void;
+  onOpenRehberlikPanel: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -31,6 +33,8 @@ export const Header: React.FC<HeaderProps> = ({
   onLogout,
   onOpenMobileMenu,
   onRetrySync,
+  onOpenRehberlikForm,
+  onOpenRehberlikPanel,
 }) => {
   return (
     <header
@@ -140,6 +144,30 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <SettingsIcon className="w-4 h-4 text-stone-600" />
               <span>Ayarlar</span>
+            </button>
+          )}
+
+          <button
+            id="btn-rehberlik-desktop"
+            onClick={onOpenRehberlikForm}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border shadow-xs hover:opacity-90 transition-all"
+            style={{ borderColor: 'var(--line)', background: 'var(--panel)', color: 'var(--ink)' }}
+            title="Rehberlik servisine öğrenci yönlendirme formu"
+          >
+            <HeartHandshake className="w-4 h-4 text-teal-800" />
+            <span>Rehberlik Yönlendirme</span>
+          </button>
+
+          {role === 'admin' && (
+            <button
+              id="btn-rehberlik-panel-desktop"
+              onClick={onOpenRehberlikPanel}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border shadow-xs hover:opacity-90"
+              style={{ borderColor: 'var(--line)', background: 'var(--panel)', color: 'var(--ink)' }}
+              title="Rehber öğretmen girişi gerektirir"
+            >
+              <Inbox className="w-4 h-4 text-stone-600" />
+              <span>Yönlendirmeler</span>
             </button>
           )}
 
