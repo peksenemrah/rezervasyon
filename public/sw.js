@@ -1,9 +1,10 @@
 /* Service Worker for PWA Offline Shell & Notifications */
-const ONBELLEK = 'rezervasyon-kabuk-v8';
+const ONBELLEK = 'rezervasyon-kabuk-v9';
 const KABUK = [
   './',
   './index.html',
   './manifest.json',
+  './gorev.html',
   './icon-192.png',
   './icon-512.png',
   './icon-maskable.png'
