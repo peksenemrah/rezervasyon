@@ -1,6 +1,6 @@
 import React from 'react';
 import { Settings, Role } from '../types';
-import { Camera, Settings as SettingsIcon, LogIn, LogOut, Menu, Cloud, CloudOff, RefreshCw, Users, HeartHandshake, Inbox } from 'lucide-react';
+import { Camera, Settings as SettingsIcon, LogIn, LogOut, Menu, Cloud, CloudOff, RefreshCw, Users, HeartHandshake, Inbox, LayoutGrid } from 'lucide-react';
 import { SISTEM_ADI, SISTEM_KISA } from '../constants';
 
 interface HeaderProps {
@@ -18,6 +18,7 @@ interface HeaderProps {
   onRetrySync?: () => void;
   onOpenRehberlikForm: () => void;
   onOpenRehberlikPanel: () => void;
+  onAnaMenu: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -35,6 +36,7 @@ export const Header: React.FC<HeaderProps> = ({
   onRetrySync,
   onOpenRehberlikForm,
   onOpenRehberlikPanel,
+  onAnaMenu,
 }) => {
   return (
     <header
@@ -48,7 +50,18 @@ export const Header: React.FC<HeaderProps> = ({
     >
       <div className="max-w-[1440px] mx-auto px-3 sm:px-6 py-2.5 sm:py-3.5 flex items-center justify-between gap-3">
         {/* Brand & Title */}
-        <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <button
+            id="btn-ana-menu"
+            onClick={onAnaMenu}
+            title="Ana menüye dön"
+            aria-label="Ana menüye dön"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 border shadow-xs hover:opacity-80 transition-opacity"
+            style={{ borderColor: 'var(--line)', background: 'var(--panel)' }}
+          >
+            <LayoutGrid className="w-4 h-4 sm:w-[18px] sm:h-[18px]" style={{ color: 'var(--ink-soft)' }} />
+          </button>
+
           <div
             id="brand-logo"
             className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 font-display font-bold text-xl sm:text-2xl overflow-hidden border shadow-xs"
