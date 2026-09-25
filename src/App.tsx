@@ -62,6 +62,7 @@ import { RehberlikPanelModal } from './components/RehberlikPanelModal';
 import { KurulumBanner } from './components/KurulumBanner';
 import { AnaMenu, MenuSecimi } from './components/AnaMenu';
 import { NobetGorunumu } from './components/NobetGorunumu';
+import { GorevGorunumu } from './components/GorevGorunumu';
 import { SnapshotBanner } from './components/SnapshotBanner';
 import { ConflictModal } from './components/ConflictModal';
 import { AuthModal } from './components/AuthModal';
@@ -164,6 +165,7 @@ export default function App() {
   /* Uygulama ana menüyle açılır; kullanıcı bir bölüm seçince kapanır. */
   const [anaMenuAcik, setAnaMenuAcik] = useState(true);
   const [nobetAcik, setNobetAcik] = useState(false);
+  const [gorevAcik, setGorevAcik] = useState(false);
   const [showRehberlikForm, setShowRehberlikForm] = useState(false);
   const [showRehberlikPanel, setShowRehberlikPanel] = useState(false);
   const [showTeacherListModal, setShowTeacherListModal] = useState(false);
@@ -1195,6 +1197,10 @@ export default function App() {
       setNobetAcik(true);
       return;
     }
+    if (secim.tur === 'gorev') {
+      setGorevAcik(true);
+      return;
+    }
     /* Rehberlik formu ana menünün üstünde açılır; kapanınca menüye dönülür. */
     setShowRehberlikForm(true);
   };
@@ -1202,6 +1208,11 @@ export default function App() {
   /* Nöbet çizelgesi tam ekran açılır. */
   if (nobetAcik) {
     return <NobetGorunumu onGeri={() => setNobetAcik(false)} />;
+  }
+
+  /* Görev dağılımı (kişisel görünüm) tam ekran açılır. */
+  if (gorevAcik) {
+    return <GorevGorunumu onGeri={() => setGorevAcik(false)} />;
   }
 
   /* Ana menü: rezervasyon tablosu yerine bölüm seçimi gösterilir. */
