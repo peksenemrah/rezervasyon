@@ -60,6 +60,8 @@ import { TaleplerimModal } from './components/TaleplerimModal';
 import { RehberlikFormModal } from './components/RehberlikFormModal';
 import { RehberlikPanelModal } from './components/RehberlikPanelModal';
 import { KurulumBanner } from './components/KurulumBanner';
+import { AnaMenu, MenuSecimi } from './components/AnaMenu';
+import { NobetGorunumu } from './components/NobetGorunumu';
 import { SnapshotBanner } from './components/SnapshotBanner';
 import { ConflictModal } from './components/ConflictModal';
 import { AuthModal } from './components/AuthModal';
@@ -159,6 +161,9 @@ export default function App() {
   const [showIptalTalepleriModal, setShowIptalTalepleriModal] = useState(false);
   const [iptalIslemHata, setIptalIslemHata] = useState('');
   const [showTaleplerimModal, setShowTaleplerimModal] = useState(false);
+  /* Uygulama ana menüyle açılır; kullanıcı bir bölüm seçince kapanır. */
+  const [anaMenuAcik, setAnaMenuAcik] = useState(true);
+  const [nobetAcik, setNobetAcik] = useState(false);
   const [showRehberlikForm, setShowRehberlikForm] = useState(false);
   const [showRehberlikPanel, setShowRehberlikPanel] = useState(false);
   const [showTeacherListModal, setShowTeacherListModal] = useState(false);
@@ -1179,6 +1184,53 @@ export default function App() {
   const currentBooking = editingCell ? findBooking(editingCell, editingCell.lesson) : null;
   const currentTalep = editingCell ? findTalep(editingCell, editingCell.lesson) : null;
 
+  /* ---------------- Ana menü yönlendirmesi ---------------- */
+  const menuSec = (secim: MenuSecimi) => {
+    if (secim.tur === 'mekan') {
+      setActiveLocation(secim.mekan);
+      setAnaMenuAcik(false);
+      return;
+    }
+    if (secim.tur === 'nobet') {
+      setNobetAcik(true);
+      return;
+    }
+    /* Rehberlik formu ana menünün üstünde açılır; kapanınca menüye dönülür. */
+    setShowRehberlikForm(true);
+  };
+
+  /* Nöbet çizelgesi tam ekran açılır. */
+  if (nobetAcik) {
+    return <NobetGorunumu onGeri={() => setNobetAcik(false)} />;
+  }
+
+  /* Ana menü: rezervasyon tablosu yerine bölüm seçimi gösterilir. */
+  if (anaMenuAcik) {
+    return (
+      <>
+        <AnaMenu settings={settings} onSec={menuSec} />
+
+        {toastMsg && (
+          <div
+            className="no-snapshot fixed top-5 left-1/2 -translate-x-1/2 z-[999] px-5 py-3 rounded-2xl text-white font-bold text-xs sm:text-sm shadow-2xl border border-stone-700"
+            style={{ background: 'var(--ink)' }}
+          >
+            {toastMsg}
+          </div>
+        )}
+
+        <RehberlikFormModal
+          isOpen={showRehberlikForm}
+          onClose={() => setShowRehberlikForm(false)}
+          teachers={teachers}
+          onSonuc={(m) => setToastMsg(m)}
+        />
+
+        <KurulumBanner />
+      </>
+    );
+  }
+
   return (
     <div
       id="app-shell"
@@ -1295,6 +1347,7 @@ export default function App() {
         onRetrySync={yenidenBaglan}
         onOpenRehberlikForm={() => setShowRehberlikForm(true)}
         onOpenRehberlikPanel={() => setShowRehberlikPanel(true)}
+        onAnaMenu={() => setAnaMenuAcik(true)}
       />
 
       {/* Main Table Content */}
