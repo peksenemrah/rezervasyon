@@ -56,10 +56,15 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={onAnaMenu}
             title="Ana menüye dön"
             aria-label="Ana menüye dön"
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 border shadow-xs hover:opacity-80 transition-opacity"
-            style={{ borderColor: 'var(--line)', background: 'var(--panel)' }}
+            className="h-9 sm:h-10 px-2.5 sm:px-3.5 rounded-xl flex items-center gap-2 shrink-0 border shadow-xs hover:opacity-85 transition-opacity"
+            style={{
+              borderColor: 'var(--teal-dark)',
+              background: 'var(--teal-tint)',
+              color: 'var(--teal-dark)',
+            }}
           >
-            <LayoutGrid className="w-4 h-4 sm:w-[18px] sm:h-[18px]" style={{ color: 'var(--ink-soft)' }} />
+            <LayoutGrid className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
+            <span className="hidden sm:inline text-sm font-bold">Ana Menü</span>
           </button>
 
           <div

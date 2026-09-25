@@ -1,6 +1,6 @@
 import React from 'react';
 import { Settings, Role } from '../types';
-import { X, Settings as SettingsIcon, LogIn, LogOut, Camera, Users } from 'lucide-react';
+import { X, Settings as SettingsIcon, LogIn, LogOut, Camera, Users, LayoutGrid } from 'lucide-react';
 import { SISTEM_ADI } from '../constants';
 
 interface MobileSlideOverProps {
@@ -12,6 +12,7 @@ interface MobileSlideOverProps {
   onOpenSnapshot: () => void;
   onOpenAuth: () => void;
   onLogout: () => void;
+  onAnaMenu: () => void;
 }
 
 export const MobileSlideOver: React.FC<MobileSlideOverProps> = ({
@@ -23,6 +24,7 @@ export const MobileSlideOver: React.FC<MobileSlideOverProps> = ({
   onOpenSnapshot,
   onOpenAuth,
   onLogout,
+  onAnaMenu,
 }) => {
   if (!isOpen) return null;
 
@@ -52,6 +54,22 @@ export const MobileSlideOver: React.FC<MobileSlideOverProps> = ({
               ? 'Yönetici olarak oturum açtınız.'
               : 'Görüntüleme modundasınız. Boş saatlere tıklayarak rezervasyon yapabilirsiniz.'}
           </div>
+
+          <button
+            onClick={() => {
+              onClose();
+              onAnaMenu();
+            }}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold border shadow-xs"
+            style={{
+              borderColor: 'var(--teal-dark)',
+              background: 'var(--teal-tint)',
+              color: 'var(--teal-dark)',
+            }}
+          >
+            <LayoutGrid className="w-4 h-4" />
+            <span>Ana Menü</span>
+          </button>
 
           <button
             onClick={() => {
