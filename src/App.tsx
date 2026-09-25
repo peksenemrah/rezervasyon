@@ -1402,6 +1402,7 @@ export default function App() {
         }}
         onOpenAuth={() => setShowAuthModal(true)}
         onLogout={handleLogout}
+        onAnaMenu={() => setAnaMenuAcik(true)}
       />
 
       {/* Cell Detail / Booking / Request Modal */}
