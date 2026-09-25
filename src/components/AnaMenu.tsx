@@ -5,6 +5,7 @@ import {
   Trees,
   HeartHandshake,
   CalendarClock,
+  ClipboardList,
   ChevronRight,
 } from 'lucide-react';
 import { Settings } from '../types';
@@ -22,7 +23,8 @@ import { Settings } from '../types';
 export type MenuSecimi =
   | { tur: 'mekan'; mekan: string }
   | { tur: 'rehberlik' }
-  | { tur: 'nobet' };
+  | { tur: 'nobet' }
+  | { tur: 'gorev' };
 
 interface AnaMenuProps {
   settings: Settings;
@@ -98,6 +100,15 @@ export const AnaMenu: React.FC<AnaMenuProps> = ({ settings, onSec }) => {
       renk: 'var(--teal)',
       zemin: 'var(--teal-tint)',
       secim: { tur: 'nobet' },
+    },
+    {
+      anahtar: 'gorev',
+      baslik: 'Görevlerim',
+      aciklama: 'Kurul, komisyon ve belirli gün-hafta görevleriniz',
+      simge: ClipboardList,
+      renk: 'var(--ochre)',
+      zemin: 'var(--ochre-tint)',
+      secim: { tur: 'gorev' },
     },
   ];
 
