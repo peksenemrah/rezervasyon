@@ -1,5 +1,5 @@
 /* Service Worker for PWA Offline Shell & Notifications */
-const ONBELLEK = 'rezervasyon-talep-kabuk-v6';
+const ONBELLEK = 'rezervasyon-kabuk-v7';
 const KABUK = [
   './',
   './index.html',
@@ -30,6 +30,9 @@ self.addEventListener('fetch', e => {
   if (istek.method !== 'GET') return;
   const url = new URL(istek.url);
   if (url.origin !== self.location.origin) return;
+  /* API çağrıları hiç önbelleğe girmesin: bildirim uç noktası anlık
+     durum döndürür, eski cevabın saklanması yanıltıcı olur. */
+  if (url.pathname.startsWith('/api/')) return;
 
   e.respondWith(
     fetch(istek)
