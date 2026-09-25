@@ -59,6 +59,7 @@ import { IptalTalepleriModal } from './components/IptalTalepleriModal';
 import { TaleplerimModal } from './components/TaleplerimModal';
 import { RehberlikFormModal } from './components/RehberlikFormModal';
 import { RehberlikPanelModal } from './components/RehberlikPanelModal';
+import { KurulumBanner } from './components/KurulumBanner';
 import { SnapshotBanner } from './components/SnapshotBanner';
 import { ConflictModal } from './components/ConflictModal';
 import { AuthModal } from './components/AuthModal';
@@ -1456,6 +1457,9 @@ export default function App() {
         isOpen={showRehberlikPanel}
         onClose={() => setShowRehberlikPanel(false)}
       />
+
+      {/* Ekran görüntüsü alınırken ve modal açıkken görünmesin. */}
+      {!isSnapshotMode && <KurulumBanner />}
 
       <TaleplerimModal
         isOpen={showTaleplerimModal}
