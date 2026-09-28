@@ -6,7 +6,9 @@ import {
   HeartHandshake,
   CalendarClock,
   ClipboardList,
+  NotebookPen,
   ChevronRight,
+  ExternalLink,
 } from 'lucide-react';
 import { Settings } from '../types';
 
@@ -69,7 +71,10 @@ export const AnaMenu: React.FC<AnaMenuProps> = ({ settings, onSec }) => {
     simge: React.ElementType;
     renk: string;
     zemin: string;
-    secim: MenuSecimi;
+    /* secim: uygulama içinde açılan bölümler için.
+       adres: başka bir siteye gidiyorsa, yeni sekmede açılır. */
+    secim?: MenuSecimi;
+    adres?: string;
   }> = [
     ...mekanlar.map((m) => {
       const g = mekanGorunumu(m);
@@ -109,6 +114,15 @@ export const AnaMenu: React.FC<AnaMenuProps> = ({ settings, onSec }) => {
       renk: 'var(--ochre)',
       zemin: 'var(--ochre-tint)',
       secim: { tur: 'gorev' },
+    },
+    {
+      anahtar: 'sinif-defteri',
+      baslik: 'Sınıf Defteri',
+      aciklama: 'Haftalık ders planı ve kazanım takibi — yeni sekmede açılır',
+      simge: NotebookPen,
+      renk: 'var(--brick)',
+      zemin: 'var(--brick-tint)',
+      adres: 'https://ilkokul1.com/araclar/sinif-defteri/',
     },
   ];
 
@@ -153,10 +167,20 @@ export const AnaMenu: React.FC<AnaMenuProps> = ({ settings, onSec }) => {
         <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
           {kartlar.map((k) => {
             const Simge = k.simge;
+            const disBaglanti = Boolean(k.adres);
+
+            /* Başka bir siteye giden kart gerçek bir bağlantı olmalı:
+               açılır pencere engelleyicisine takılmaz, orta tıklamayla
+               ayrı sekmede açılabilir ve ekran okuyucu doğru okur. */
+            const Sarmal: React.ElementType = disBaglanti ? 'a' : 'button';
+            const sarmalOzellikleri = disBaglanti
+              ? { href: k.adres, target: '_blank', rel: 'noopener noreferrer' }
+              : { onClick: () => k.secim && onSec(k.secim) };
+
             return (
-              <button
+              <Sarmal
                 key={k.anahtar}
-                onClick={() => onSec(k.secim)}
+                {...sarmalOzellikleri}
                 className="group text-left rounded-2xl border p-4 sm:p-5 shadow-xs transition-all hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-4"
                 style={{ background: 'var(--panel)', borderColor: 'var(--line)' }}
               >
@@ -182,11 +206,18 @@ export const AnaMenu: React.FC<AnaMenuProps> = ({ settings, onSec }) => {
                   </p>
                 </div>
 
-                <ChevronRight
-                  className="w-5 h-5 shrink-0 opacity-30 group-hover:opacity-60 transition-opacity"
-                  style={{ color: 'var(--ink)' }}
-                />
-              </button>
+                {disBaglanti ? (
+                  <ExternalLink
+                    className="w-[18px] h-[18px] shrink-0 opacity-40 group-hover:opacity-70 transition-opacity"
+                    style={{ color: 'var(--ink)' }}
+                  />
+                ) : (
+                  <ChevronRight
+                    className="w-5 h-5 shrink-0 opacity-30 group-hover:opacity-60 transition-opacity"
+                    style={{ color: 'var(--ink)' }}
+                  />
+                )}
+              </Sarmal>
             );
           })}
         </div>
