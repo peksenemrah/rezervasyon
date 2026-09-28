@@ -8,7 +8,7 @@ export const DEFAULT_TEACHERS: TeacherClassItem[] = [
   { id: '1d', className: '1/D', teacherName: 'Müşerref Bozdağ', branch: '1/D Sınıfı Öğretmeni', group: 'SABAH' },
   { id: '1e', className: '1/E', teacherName: 'Emel Sert', branch: '1/E Sınıfı Öğretmeni', group: 'SABAH' },
   { id: '1f', className: '1/F', teacherName: 'Ezo Kunt', branch: '1/F Sınıfı Öğretmeni', group: 'SABAH' },
-  { id: '1g', className: '1/G', teacherName: 'Gül Alibaş SÜTÇÜ', branch: '1/G Sınıfı Öğretmeni', group: 'SABAH' },
+  { id: '1g', className: '1/G', teacherName: 'Emine ÇAKAL', branch: '1/G Sınıfı Öğretmeni', group: 'ÖĞLE' },
 
   // 2. Sınıflar
   { id: '2a', className: '2/A', teacherName: 'Özlem Eravcı', branch: '2/A Sınıfı Öğretmeni', group: 'SABAH' },
