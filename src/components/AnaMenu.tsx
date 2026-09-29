@@ -7,6 +7,7 @@ import {
   CalendarClock,
   ClipboardList,
   NotebookPen,
+  Flag,
   ChevronRight,
   ExternalLink,
 } from 'lucide-react';
@@ -26,7 +27,8 @@ export type MenuSecimi =
   | { tur: 'mekan'; mekan: string }
   | { tur: 'rehberlik' }
   | { tur: 'nobet' }
-  | { tur: 'gorev' };
+  | { tur: 'gorev' }
+  | { tur: 'gosteri' };
 
 interface AnaMenuProps {
   settings: Settings;
@@ -114,6 +116,15 @@ export const AnaMenu: React.FC<AnaMenuProps> = ({ settings, onSec }) => {
       renk: 'var(--ochre)',
       zemin: 'var(--ochre-tint)',
       secim: { tur: 'gorev' },
+    },
+    {
+      anahtar: 'gosteri',
+      baslik: '29 Ekim Gösterileri',
+      aciklama: 'Cumhuriyet Bayramı gösterinizi yazın, diğerlerini görün',
+      simge: Flag,
+      renk: 'var(--brick)',
+      zemin: 'var(--brick-tint)',
+      secim: { tur: 'gosteri' },
     },
     {
       anahtar: 'sinif-defteri',
