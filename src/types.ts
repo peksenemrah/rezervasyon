@@ -127,3 +127,12 @@ export interface Yonlendirme {
   yonlendirenOgretmen: string;
   olusturmaZamani: number;
 }
+
+export interface Gosteri {
+  key?: string;
+  ogretmen: string;
+  gosteriAdi: string;
+  sarki: string;
+  olusturmaZamani: number;
+  guncellemeZamani?: number;
+}

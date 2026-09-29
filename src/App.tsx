@@ -63,6 +63,7 @@ import { KurulumBanner } from './components/KurulumBanner';
 import { AnaMenu, MenuSecimi } from './components/AnaMenu';
 import { NobetGorunumu } from './components/NobetGorunumu';
 import { GorevGorunumu } from './components/GorevGorunumu';
+import { GosteriGorunumu } from './components/GosteriGorunumu';
 import { SnapshotBanner } from './components/SnapshotBanner';
 import { ConflictModal } from './components/ConflictModal';
 import { AuthModal } from './components/AuthModal';
@@ -166,6 +167,7 @@ export default function App() {
   const [anaMenuAcik, setAnaMenuAcik] = useState(true);
   const [nobetAcik, setNobetAcik] = useState(false);
   const [gorevAcik, setGorevAcik] = useState(false);
+  const [gosteriAcik, setGosteriAcik] = useState(false);
   const [showRehberlikForm, setShowRehberlikForm] = useState(false);
   const [showRehberlikPanel, setShowRehberlikPanel] = useState(false);
   const [showTeacherListModal, setShowTeacherListModal] = useState(false);
@@ -1201,6 +1203,10 @@ export default function App() {
       setGorevAcik(true);
       return;
     }
+    if (secim.tur === 'gosteri') {
+      setGosteriAcik(true);
+      return;
+    }
     /* Rehberlik formu ana menünün üstünde açılır; kapanınca menüye dönülür. */
     setShowRehberlikForm(true);
   };
@@ -1213,6 +1219,28 @@ export default function App() {
   /* Görev dağılımı (kişisel görünüm) tam ekran açılır. */
   if (gorevAcik) {
     return <GorevGorunumu onGeri={() => setGorevAcik(false)} />;
+  }
+
+  /* 29 Ekim gösteri kayıtları tam ekran açılır. */
+  if (gosteriAcik) {
+    return (
+      <>
+        <GosteriGorunumu
+          onGeri={() => setGosteriAcik(false)}
+          teachers={teachers}
+          role={role}
+          onSonuc={(m) => setToastMsg(m)}
+        />
+        {toastMsg && (
+          <div
+            className="no-snapshot fixed top-5 left-1/2 -translate-x-1/2 z-[999] px-5 py-3 rounded-2xl text-white font-bold text-xs sm:text-sm shadow-2xl border border-stone-700"
+            style={{ background: 'var(--ink)' }}
+          >
+            {toastMsg}
+          </div>
+        )}
+      </>
+    );
   }
 
   /* Ana menü: rezervasyon tablosu yerine bölüm seçimi gösterilir. */
