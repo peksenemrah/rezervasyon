@@ -8,8 +8,10 @@ import {
   AlertTriangle,
   Users,
   Search,
+  Lock,
+  X,
 } from 'lucide-react';
-import { Gosteri, Role, TeacherClassItem } from '../types';
+import { Gosteri, TeacherClassItem } from '../types';
 import {
   gosterileriIzle,
   gosteriEkle,
@@ -32,14 +34,15 @@ import {
 interface GosteriGorunumuProps {
   onGeri: () => void;
   teachers: TeacherClassItem[];
-  role: Role;
+  /** Silme için sorulacak yönetici şifresi (Ayarlar'dan gelir). */
+  adminSifre: string;
   onSonuc: (mesaj: string) => void;
 }
 
 export const GosteriGorunumu: React.FC<GosteriGorunumuProps> = ({
   onGeri,
   teachers,
-  role,
+  adminSifre,
   onSonuc,
 }) => {
   const [liste, setListe] = useState<Gosteri[]>([]);
@@ -52,6 +55,13 @@ export const GosteriGorunumu: React.FC<GosteriGorunumuProps> = ({
   const [kaydediliyor, setKaydediliyor] = useState(false);
   const [formHata, setFormHata] = useState('');
   const [arama, setArama] = useState('');
+
+  /* Silme yalnızca yönetici şifresiyle yapılabilir. Şifre kutusu,
+     silinecek kayıt seçildiğinde açılır. */
+  const [silinecek, setSilinecek] = useState<Gosteri | null>(null);
+  const [silmeSifre, setSilmeSifre] = useState('');
+  const [silmeHata, setSilmeHata] = useState('');
+  const [siliniyor, setSiliniyor] = useState(false);
 
   useEffect(() => {
     const kapat = gosterileriIzle(
@@ -129,13 +139,29 @@ export const GosteriGorunumu: React.FC<GosteriGorunumuProps> = ({
     }
   };
 
-  const sil = async (k: Gosteri) => {
-    if (!k.key) return;
+  const silmeyiKapat = () => {
+    setSilinecek(null);
+    setSilmeSifre('');
+    setSilmeHata('');
+  };
+
+  const silmeyiOnayla = async () => {
+    if (!silinecek?.key) return;
+    /* Şifre uyuşmuyorsa ne doğrusunu ne de biçimini belli eden bir
+       ipucu veriyoruz; yalnızca yanlış olduğunu söylüyoruz. */
+    if (silmeSifre !== adminSifre) {
+      setSilmeHata('Şifre hatalı.');
+      return;
+    }
+    setSiliniyor(true);
     try {
-      await gosteriSil(k.key);
+      await gosteriSil(silinecek.key);
       onSonuc('Kayıt silindi');
+      silmeyiKapat();
     } catch (e) {
-      onSonuc('Silinemedi');
+      setSilmeHata('Silinemedi. Bağlantınızı kontrol edin.');
+    } finally {
+      setSiliniyor(false);
     }
   };
 
@@ -417,21 +443,122 @@ export const GosteriGorunumu: React.FC<GosteriGorunumuProps> = ({
                     )}
                   </div>
 
-                  {role === 'admin' && (
-                    <button
-                      onClick={() => sil(k)}
-                      title="Kaydı sil"
-                      className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-rose-100 shrink-0"
-                    >
-                      <Trash2 className="w-4 h-4 text-rose-500" />
-                    </button>
-                  )}
+                  <button
+                    onClick={() => {
+                      setSilinecek(k);
+                      setSilmeSifre('');
+                      setSilmeHata('');
+                    }}
+                    title="Kaydı sil (yönetici şifresi gerekir)"
+                    className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-rose-100 shrink-0"
+                  >
+                    <Trash2 className="w-4 h-4 text-rose-500" />
+                  </button>
                 </li>
               ))}
             </ul>
           )}
         </div>
       </div>
+
+      {/* Silme onayı — yönetici şifresi istenir */}
+      {silinecek && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) silmeyiKapat();
+          }}
+          className="no-snapshot fixed inset-0 z-[900] flex items-end sm:items-center justify-center p-0 sm:p-4"
+          style={{ background: 'rgba(32,38,31,0.65)', backdropFilter: 'blur(6px)' }}
+        >
+          <div
+            className="w-full max-w-sm rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 shadow-2xl border"
+            style={{ background: 'var(--panel)', borderColor: 'var(--line)' }}
+          >
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <div
+                  className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0"
+                  style={{ background: 'var(--brick-tint)' }}
+                >
+                  <Lock className="w-5 h-5" style={{ color: 'var(--brick)' }} />
+                </div>
+                <div className="min-w-0">
+                  <h3
+                    className="font-display font-bold text-lg leading-tight"
+                    style={{ color: 'var(--ink)' }}
+                  >
+                    Kaydı sil
+                  </h3>
+                  <p
+                    className="text-xs font-semibold truncate"
+                    style={{ color: 'var(--ink-soft)' }}
+                  >
+                    {silinecek.gosteriAdi}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={silmeyiKapat}
+                className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-stone-200 shrink-0"
+                style={{ background: 'var(--paper-2)' }}
+              >
+                <X className="w-4 h-4 text-stone-700" />
+              </button>
+            </div>
+
+            <p className="text-xs font-medium mb-3" style={{ color: 'var(--ink-soft)' }}>
+              Gösteri kayıtlarını yalnızca okul idaresi silebilir. Devam etmek
+              için yönetici şifresini girin.
+            </p>
+
+            <input
+              type="password"
+              autoFocus
+              value={silmeSifre}
+              onChange={(e) => {
+                setSilmeSifre(e.target.value);
+                if (silmeHata) setSilmeHata('');
+              }}
+              onKeyDown={(e) => e.key === 'Enter' && silmeyiOnayla()}
+              placeholder="Yönetici şifresi"
+              className="w-full px-3.5 py-2.5 rounded-xl text-sm font-medium border outline-none focus:border-teal-500"
+              style={{
+                background: 'var(--paper-2)',
+                borderColor: 'var(--line)',
+                color: 'var(--ink)',
+              }}
+            />
+
+            {silmeHata && (
+              <div className="text-xs font-bold text-rose-600 bg-rose-50 rounded-xl px-3 py-2.5 mt-3">
+                {silmeHata}
+              </div>
+            )}
+
+            <div className="flex items-center gap-2 mt-4">
+              <button
+                onClick={silmeyiOnayla}
+                disabled={siliniyor}
+                className="flex-1 py-3 rounded-xl font-bold text-sm text-white disabled:opacity-60"
+                style={{ background: '#e11d48' }}
+              >
+                {siliniyor ? 'Siliniyor…' : 'Sil'}
+              </button>
+              <button
+                onClick={silmeyiKapat}
+                className="px-4 py-3 rounded-xl font-bold text-sm border"
+                style={{
+                  borderColor: 'var(--line)',
+                  background: 'var(--panel)',
+                  color: 'var(--ink)',
+                }}
+              >
+                Vazgeç
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
