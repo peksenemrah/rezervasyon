@@ -1228,7 +1228,7 @@ export default function App() {
         <GosteriGorunumu
           onGeri={() => setGosteriAcik(false)}
           teachers={teachers}
-          role={role}
+          adminSifre={settings.adminPassword || 'cg2026'}
           onSonuc={(m) => setToastMsg(m)}
         />
         {toastMsg && (
