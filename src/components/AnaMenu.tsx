@@ -8,6 +8,7 @@ import {
   ClipboardList,
   NotebookPen,
   Flag,
+  CalendarHeart,
   ChevronRight,
   ExternalLink,
 } from 'lucide-react';
@@ -28,7 +29,8 @@ export type MenuSecimi =
   | { tur: 'rehberlik' }
   | { tur: 'nobet' }
   | { tur: 'gorev' }
-  | { tur: 'gosteri' };
+  | { tur: 'gosteri' }
+  | { tur: 'etkinlik' };
 
 interface AnaMenuProps {
   settings: Settings;
@@ -125,6 +127,15 @@ export const AnaMenu: React.FC<AnaMenuProps> = ({ settings, onSec }) => {
       renk: 'var(--brick)',
       zemin: 'var(--brick-tint)',
       secim: { tur: 'gosteri' },
+    },
+    {
+      anahtar: 'etkinlik',
+      baslik: 'Okul Etkinliği',
+      aciklama: 'Şubenizden kaç öğrencinin katıldığını girin, toplamı görün',
+      simge: CalendarHeart,
+      renk: 'var(--teal-dark)',
+      zemin: 'var(--teal-tint)',
+      secim: { tur: 'etkinlik' },
     },
     {
       anahtar: 'sinif-defteri',
