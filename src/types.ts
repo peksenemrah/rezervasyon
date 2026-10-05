@@ -136,3 +136,34 @@ export interface Gosteri {
   olusturmaZamani: number;
   guncellemeZamani?: number;
 }
+
+/* ------------------------------------------------------------------
+   OKUL ETKİNLİKLERİ
+
+   İdare bir etkinlik açar; öğretmenler kendi şubelerinden kaç
+   öğrencinin katıldığını yazar. Her şubenin tek bir kaydı olur,
+   bu yüzden katılımlar şube anahtarına göre saklanır — aynı şube
+   için ikinci bir satır oluşmaz, yazılan son değer geçerlidir.
+------------------------------------------------------------------- */
+
+export interface EtkinlikKatilim {
+  /** Şube adı, göründüğü hâliyle: "3/B", "Anasınıfı-D". */
+  sinif: string;
+  sayi: number;
+  /** Girişi yapan öğretmen — sonradan kime sorulacağı bilinsin diye. */
+  giren: string;
+  zaman: number;
+}
+
+export interface Etkinlik {
+  key?: string;
+  ad: string;
+  /** YYYY-MM-DD */
+  tarih: string;
+  aciklama?: string;
+  olusturmaZamani: number;
+  /* Tek bir etkinlik açık kalır. Yeni etkinlik eklendiğinde öncekiler
+     arşive düşer: arşivdekiler görülebilir ama giriş yapılamaz. */
+  arsiv: boolean;
+  katilim?: Record<string, EtkinlikKatilim>;
+}

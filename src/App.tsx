@@ -64,6 +64,7 @@ import { AnaMenu, MenuSecimi } from './components/AnaMenu';
 import { NobetGorunumu } from './components/NobetGorunumu';
 import { GorevGorunumu } from './components/GorevGorunumu';
 import { GosteriGorunumu } from './components/GosteriGorunumu';
+import { EtkinlikGorunumu } from './components/EtkinlikGorunumu';
 import { SnapshotBanner } from './components/SnapshotBanner';
 import { ConflictModal } from './components/ConflictModal';
 import { AuthModal } from './components/AuthModal';
@@ -168,6 +169,7 @@ export default function App() {
   const [nobetAcik, setNobetAcik] = useState(false);
   const [gorevAcik, setGorevAcik] = useState(false);
   const [gosteriAcik, setGosteriAcik] = useState(false);
+  const [etkinlikAcik, setEtkinlikAcik] = useState(false);
   const [showRehberlikForm, setShowRehberlikForm] = useState(false);
   const [showRehberlikPanel, setShowRehberlikPanel] = useState(false);
   const [showTeacherListModal, setShowTeacherListModal] = useState(false);
@@ -1207,6 +1209,10 @@ export default function App() {
       setGosteriAcik(true);
       return;
     }
+    if (secim.tur === 'etkinlik') {
+      setEtkinlikAcik(true);
+      return;
+    }
     /* Rehberlik formu ana menünün üstünde açılır; kapanınca menüye dönülür. */
     setShowRehberlikForm(true);
   };
@@ -1227,6 +1233,28 @@ export default function App() {
       <>
         <GosteriGorunumu
           onGeri={() => setGosteriAcik(false)}
+          teachers={teachers}
+          adminSifre={settings.adminPassword || 'cg2026'}
+          onSonuc={(m) => setToastMsg(m)}
+        />
+        {toastMsg && (
+          <div
+            className="no-snapshot fixed top-5 left-1/2 -translate-x-1/2 z-[999] px-5 py-3 rounded-2xl text-white font-bold text-xs sm:text-sm shadow-2xl border border-stone-700"
+            style={{ background: 'var(--ink)' }}
+          >
+            {toastMsg}
+          </div>
+        )}
+      </>
+    );
+  }
+
+  /* Okul etkinliği katılım takibi tam ekran açılır. */
+  if (etkinlikAcik) {
+    return (
+      <>
+        <EtkinlikGorunumu
+          onGeri={() => setEtkinlikAcik(false)}
           teachers={teachers}
           adminSifre={settings.adminPassword || 'cg2026'}
           onSonuc={(m) => setToastMsg(m)}
