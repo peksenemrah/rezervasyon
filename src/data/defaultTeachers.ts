@@ -25,7 +25,7 @@ export const DEFAULT_TEACHERS: TeacherClassItem[] = [
   { id: '3c', className: '3/C', teacherName: 'Sevgi Öztürk', branch: '3/C Sınıfı Öğretmeni', group: 'ÖĞLE' },
   { id: '3d', className: '3/D', teacherName: 'Feride Nur Aktan', branch: '3/D Sınıfı Öğretmeni', group: 'ÖĞLE' },
   { id: '3e', className: '3/E', teacherName: 'Ebrar Rukiye Doğan', branch: '3/E Sınıfı Öğretmeni', group: 'ÖĞLE' },
-  { id: '3f', className: '3/F', teacherName: 'Ekin Ölmez', branch: '3/F Sınıfı Öğretmeni', group: 'ÖĞLE' },
+  { id: '3f', className: '3/F', teacherName: 'Ekin Ölmez Özdeş', branch: '3/F Sınıfı Öğretmeni', group: 'ÖĞLE' },
   { id: '3g', className: '3/G', teacherName: 'Ümit Bal', branch: '3/G Sınıfı Öğretmeni', group: 'ÖĞLE' },
 
   // 4. Sınıflar
