@@ -9,6 +9,7 @@ import {
   NotebookPen,
   Flag,
   CalendarHeart,
+  ShieldAlert,
   ChevronRight,
   ExternalLink,
 } from 'lucide-react';
@@ -30,7 +31,8 @@ export type MenuSecimi =
   | { tur: 'nobet' }
   | { tur: 'gorev' }
   | { tur: 'gosteri' }
-  | { tur: 'etkinlik' };
+  | { tur: 'etkinlik' }
+  | { tur: 'risk' };
 
 interface AnaMenuProps {
   settings: Settings;
@@ -80,6 +82,15 @@ export const AnaMenu: React.FC<AnaMenuProps> = ({ settings, onSec }) => {
     secim?: MenuSecimi;
     adres?: string;
   }> = [
+    {
+      anahtar: 'risk',
+      baslik: 'Risk Haritası',
+      aciklama: 'Şube risk haritanızı doldurun — giriş gerektirir',
+      simge: ShieldAlert,
+      renk: 'var(--brick)',
+      zemin: 'var(--brick-tint)',
+      secim: { tur: 'risk' } as MenuSecimi,
+    },
     ...mekanlar.map((m) => {
       const g = mekanGorunumu(m);
       return {
