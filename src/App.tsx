@@ -65,6 +65,7 @@ import { NobetGorunumu } from './components/NobetGorunumu';
 import { GorevGorunumu } from './components/GorevGorunumu';
 import { GosteriGorunumu } from './components/GosteriGorunumu';
 import { EtkinlikGorunumu } from './components/EtkinlikGorunumu';
+import { RiskGorunumu } from './components/RiskGorunumu';
 import { SnapshotBanner } from './components/SnapshotBanner';
 import { ConflictModal } from './components/ConflictModal';
 import { AuthModal } from './components/AuthModal';
@@ -170,6 +171,7 @@ export default function App() {
   const [gorevAcik, setGorevAcik] = useState(false);
   const [gosteriAcik, setGosteriAcik] = useState(false);
   const [etkinlikAcik, setEtkinlikAcik] = useState(false);
+  const [riskAcik, setRiskAcik] = useState(false);
   const [showRehberlikForm, setShowRehberlikForm] = useState(false);
   const [showRehberlikPanel, setShowRehberlikPanel] = useState(false);
   const [showTeacherListModal, setShowTeacherListModal] = useState(false);
@@ -1209,6 +1211,10 @@ export default function App() {
       setGosteriAcik(true);
       return;
     }
+    if (secim.tur === 'risk') {
+      setRiskAcik(true);
+      return;
+    }
     if (secim.tur === 'etkinlik') {
       setEtkinlikAcik(true);
       return;
@@ -1250,6 +1256,12 @@ export default function App() {
   }
 
   /* Okul etkinliği katılım takibi tam ekran açılır. */
+  /* Risk haritası kendi giriş perdesini taşıyor; buradan yalnızca
+     çerçeveyi açıyoruz. */
+  if (riskAcik) {
+    return <RiskGorunumu onGeri={() => setRiskAcik(false)} />;
+  }
+
   if (etkinlikAcik) {
     return (
       <>
