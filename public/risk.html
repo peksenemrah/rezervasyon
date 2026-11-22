@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Risk Haritası 2026-2027 · Sınıf ve Okul</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<style>
+:root{
+  --bg:#f3f5f8;--card:#fff;--ink:#1d2433;--muted:#667085;--line:#e3e7ee;
+  --pri:#0f6e78;--pri2:#e6f3f4;--warn:#b54708;--warnbg:#fef3e7;--ok:#067647;--okbg:#e7f6ee;--bad:#b42318;--badbg:#fdecea;
+  --r:12px;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:15px}
+button,input,textarea,select{font:inherit}
+.top{background:#12303a;color:#fff;padding:14px 22px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{width:42px;height:42px;border-radius:10px;background:#1fa3ae;display:grid;place-items:center;font-weight:800;letter-spacing:.5px}
+.brand h1{margin:0;font-size:19px}
+.brand p{margin:2px 0 0;font-size:12.5px;opacity:.75}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs button{background:transparent;border:1px solid rgba(255,255,255,.25);color:#fff;padding:8px 14px;border-radius:999px;cursor:pointer}
+.tabs button.on{background:#fff;color:#12303a;border-color:#fff;font-weight:600}
+main{max-width:1280px;margin:0 auto;padding:18px}
+.tab{display:none}.tab.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;margin-bottom:14px}
+.card h2{margin:0 0 12px;font-size:16.5px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.card h2 small{font-weight:400;color:var(--muted);font-size:13px}
+.step{width:26px;height:26px;border-radius:50%;background:var(--pri);color:#fff;display:inline-grid;place-items:center;font-size:13px}
+.grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+input[type=text],input[type=number],input:not([type]),textarea,select{border:1px solid #cfd5df;border-radius:8px;padding:8px 10px;color:var(--ink);background:#fff;width:100%}
+input:focus,textarea:focus{outline:2px solid #9fd6db;border-color:var(--pri)}
+textarea{min-height:90px;resize:vertical}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.sp{flex:1}
+.btn,button.b{border:1px solid #cfd5df;background:#fff;border-radius:8px;padding:8px 13px;cursor:pointer;color:var(--ink)}
+.btn:hover,button.b:hover{background:#f6f8fb}
+.primary{background:var(--pri)!important;color:#fff!important;border-color:var(--pri)!important;font-weight:600}
+.primary:hover{filter:brightness(1.07)}
+.danger{color:var(--bad)!important;border-color:#f3c3be!important}
+.w80{width:90px!important}
+.note{background:var(--pri2);border:1px solid #c5e4e7;color:#0d4f56;border-radius:10px;padding:10px 14px;font-size:13.5px;margin-bottom:14px;line-height:1.5}
+.warnbox{background:var(--warnbg);border:1px solid #f6d3a8;color:#7a3306;border-radius:10px;padding:10px 14px;font-size:13.5px;line-height:1.5}
+.seg{display:inline-flex;border:1px solid #cfd5df;border-radius:8px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:7px 12px;cursor:pointer}
+.seg button.on{background:var(--pri);color:#fff}
+.muted{color:var(--muted)}
+.chk{flex-direction:row;align-items:flex-start;gap:8px;color:var(--ink);font-size:14px;margin:6px 0 12px}
+.chk input{margin-top:3px}
+
+/* öğrenci kart görünümü */
+.split{display:grid;grid-template-columns:290px 1fr;gap:14px;margin-top:12px}
+@media(max-width:820px){.split{grid-template-columns:1fr}}
+.stlist{border:1px solid var(--line);border-radius:10px;max-height:620px;overflow:auto}
+.st{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line);cursor:pointer}
+.st:last-child{border-bottom:0}
+.st:hover{background:#f6f8fb}
+.st.on{background:var(--pri2)}
+.st .no{font-size:12px;color:var(--muted);width:40px}
+.st .ad{flex:1;font-size:14px}
+.badge{min-width:24px;height:22px;border-radius:999px;background:#eef1f5;color:var(--muted);font-size:12px;display:inline-grid;place-items:center;padding:0 7px}
+.badge.has{background:#fde2c8;color:#8a3a06;font-weight:700}
+.x{border:0;background:transparent;color:#98a2b3;cursor:pointer;font-size:16px;padding:0 4px}
+.x:hover{color:var(--bad)}
+.editor{border:1px solid var(--line);border-radius:10px;padding:14px}
+.edhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.edhead h3{margin:0;font-size:17px}
+.grp{margin:12px 0 4px;font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{border:1px solid #cfd5df;background:#fff;border-radius:999px;padding:6px 12px;cursor:pointer;font-size:13.5px;line-height:1.25;text-align:left}
+.chip:hover{border-color:var(--pri)}
+.chip.on{background:var(--pri);border-color:var(--pri);color:#fff}
+.chip .n{opacity:.6;font-size:11.5px;margin-right:4px}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+
+/* tablo görünümü */
+.tw{overflow:auto;border:1px solid var(--line);border-radius:10px;margin-top:12px;max-height:680px}
+table.m{border-collapse:collapse;font-size:12.5px}
+table.m th,table.m td{border:1px solid var(--line);padding:0}
+table.m thead th{position:sticky;top:0;background:#f7f9fb;z-index:2}
+table.m th.v{height:200px;width:30px;min-width:30px;vertical-align:bottom;padding:6px 2px}
+table.m th.v div{writing-mode:vertical-rl;transform:rotate(180deg);white-space:normal;max-height:190px;font-weight:600;font-size:11.5px;line-height:1.15;margin:0 auto}
+table.m td.nm,table.m th.nm{position:sticky;left:0;background:#fff;z-index:1;min-width:190px;padding:5px 8px;text-align:left}
+table.m thead th.nm{z-index:3;background:#f7f9fb}
+table.m td.c{width:30px;height:30px;text-align:center;cursor:pointer;font-weight:800;color:var(--pri)}
+table.m td.c:hover{background:var(--pri2)}
+table.m td.c.on{background:#d3ecee}
+table.m tr.tot td{background:#fff7ec;font-weight:700;text-align:center;height:30px}
+table.m tr.tot td.nm{background:#fff7ec}
+.g0{box-shadow:inset 0 3px 0 #1fa3ae}.g1{box-shadow:inset 0 3px 0 #7a5af8}.g2{box-shadow:inset 0 3px 0 #ee46bc}.g3{box-shadow:inset 0 3px 0 #f79009}
+.g4{box-shadow:inset 0 3px 0 #2e90fa}.g5{box-shadow:inset 0 3px 0 #b42318}.g6{box-shadow:inset 0 3px 0 #12b76a}.g7{box-shadow:inset 0 3px 0 #667085}
+
+/* toplamlar */
+.sums{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:6px}
+.sumi{display:flex;justify-content:space-between;gap:8px;border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:13px}
+.sumi b{min-width:22px;text-align:right}
+.sumi.z{opacity:.5}
+.stats{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.stat{background:#f7f9fb;border:1px solid var(--line);border-radius:10px;padding:10px 14px;min-width:150px}
+.stat .k{font-size:12px;color:var(--muted)}
+.stat .v{font-size:22px;font-weight:800}
+
+/* okul */
+.drop{border:2px dashed #a9c9cd;border-radius:12px;padding:22px;text-align:center;background:#f8fcfc;cursor:pointer;color:#0d4f56}
+.drop.over{background:var(--pri2);border-color:var(--pri)}
+.subes{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.sb{border-radius:8px;padding:5px 10px;font-size:13px;font-weight:600;border:1px solid}
+.sb.ok{background:var(--okbg);color:var(--ok);border-color:#a6dcbd}
+.sb.no{background:#f2f4f7;color:#98a2b3;border-color:#e4e7ec}
+.sb.extra{background:var(--warnbg);color:var(--warn);border-color:#f6d3a8}
+table.m td input.cell{width:30px;height:30px;border:0;text-align:center;padding:0;font-size:12.5px;background:transparent;border-radius:0;-moz-appearance:textfield}
+table.m td input.cell::-webkit-inner-spin-button{display:none}
+table.m td input.cell:focus{outline:2px solid var(--pri);background:#fff}
+table.m td input.cell.nz{font-weight:800;color:#8a3a06;background:#fff2e2}
+.src{font-size:11px;color:var(--muted);padding:0 6px;white-space:nowrap}
+.bars{display:flex;flex-direction:column;gap:6px}
+.bar{display:grid;grid-template-columns:minmax(150px,330px) 1fr 40px;gap:10px;align-items:center;font-size:13px}
+.bar .t{height:14px;background:#eef1f5;border-radius:7px;overflow:hidden}
+.bar .t i{display:block;height:100%;background:linear-gradient(90deg,#1fa3ae,#0f6e78);border-radius:7px}
+.formlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:6px}
+.fi{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:5px 6px 5px 10px;font-size:13px}
+.fi span{flex:1}
+.fi b{font-size:15px;min-width:28px;text-align:right}
+.fi button{border:1px solid #cfd5df;background:#fff;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:12px}
+details{margin-top:6px}
+summary{cursor:pointer;font-weight:600}
+.nlist{columns:2 320px;font-size:13px}
+.nlist div{break-inside:avoid;margin-bottom:10px}
+.nlist h4{margin:0 0 4px;font-size:13px;color:var(--pri)}
+.help h3{margin:18px 0 6px;font-size:15.5px}
+.help p,.help li{line-height:1.6}
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.fl{border:1px solid var(--line);border-radius:12px;padding:14px;background:#fbfcfd}
+.fl b{display:block;margin-bottom:6px;color:var(--pri)}
+
+dialog{border:0;border-radius:14px;padding:0;max-width:640px;width:94vw;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+dialog::backdrop{background:rgba(16,24,40,.45)}
+.dlg{padding:18px 20px}
+.dlg h3{margin:0 0 6px}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(30px);background:#12303a;color:#fff;padding:10px 18px;border-radius:10px;opacity:0;transition:.25s;z-index:99;max-width:90vw;font-size:14px}
+#toast.on{opacity:1;transform:translateX(-50%)}
+
+#printArea{display:none}
+@media print{
+  @page{size:A4 landscape;margin:7mm}
+  body{background:#fff}
+  .top,main,#toast,dialog{display:none!important}
+  #printArea{display:block}
+  .pt{font-family:Arial,sans-serif;color:#000}
+  .pt h1{font-size:13pt;text-align:center;margin:0 0 4px}
+  .pt .info{font-size:9pt;margin:0 0 5px;display:flex;flex-wrap:wrap;gap:4px 22px}
+  .pt table{border-collapse:collapse;width:100%;table-layout:fixed}
+  .pt th,.pt td{border:.6pt solid #000;font-size:7pt;padding:1px;text-align:center;overflow:hidden}
+  .pt th.v{height:46mm;vertical-align:bottom}
+  .pt th.v div{writing-mode:vertical-rl;transform:rotate(180deg);margin:0 auto;font-size:6.6pt;line-height:1.05;max-height:45mm}
+  .pt td.l{text-align:left;padding-left:3px;white-space:nowrap}
+  .pt tr.tot td{font-weight:bold;background:#eee}
+  .pt .foot{display:flex;justify-content:space-between;font-size:8pt;margin-top:8px}
+  .pt .sig{display:flex;justify-content:space-around;margin-top:14mm;font-size:9pt;text-align:center}
+  .pt .extra{font-size:8pt;margin-top:6px}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <div class="logo">RH</div>
+    <div>
+      <h1>Risk Haritası · 2026-2027</h1>
+      <p>Sınıf risk haritası (S.İ.4.a) → okul risk haritası (S.İ.2.a), otomatik birleştirme</p>
+    </div>
+  </div>
+  <nav class="tabs">
+    <button data-tab="sinif">Sınıf Öğretmeni</button>
+    <button data-tab="okul">Okul · Rehberlik / İdare</button>
+    <button data-tab="yardim">Nasıl çalışır?</button>
+  </nav>
+</header>
+
+<main>
+<!-- ================= SINIF ================= -->
+<section class="tab" id="tab-sinif">
+  <div class="note">🔒 Öğrenci adları ve işaretleriniz yalnızca bu tarayıcıda saklanır; okula giden bilgi yalnızca madde <b>sayılarıdır</b>. Ortak bir bilgisayar kullanıyorsanız işiniz bitince <b>“Sınıfı temizle”</b> düğmesine basın.<br>⚠️ Bu dosyada okulun şube listeleri vardır. Dosyayı internete yüklemeyin, herkese açık gruplarda paylaşmayın.</div>
+
+  <div class="card">
+    <h2><span class="step">1</span> Şubenizi seçin <small>Öğrenci listesi ve öğretmen adı e-Okul listesinden kendiliğinden gelir</small></h2>
+    <div class="row" style="margin-bottom:12px">
+      <select id="t_sube" style="max-width:260px;font-size:16px;font-weight:600"><option value="">— Şube seçin —</option></select>
+      <span class="muted" id="t_subeBilgi" style="font-size:13px"></span>
+    </div>
+    <div class="grid">
+      <label>Okul adı<input id="t_okul" data-f="okul"></label>
+      <label>Sınıf / Şube<input id="t_sinif" data-f="sinif" placeholder="Örn. 3-A"></label>
+      <label>Sınıf rehber öğretmeni<input id="t_ogretmen" data-f="ogretmen" placeholder="Ad Soyad"></label>
+      <label>Sınıf mevcudu<input id="t_mevcut" data-f="mevcut" type="number" min="0"></label>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="step">2</span> Öğrencileri işaretleyin <small>Her öğrenci için durumuna uyan maddelere tıklayın. Hiçbir maddeye uymayan öğrenci forma yazılmaz.</small></h2>
+    <div class="row">
+      <button class="b primary" id="btnPaste">📋 e-Okul listesini yapıştır</button>
+      <input id="newNo" class="w80" placeholder="Okul no">
+      <input id="newAd" placeholder="Ad Soyad" style="max-width:240px">
+      <button class="b" id="btnAdd">+ Ekle</button>
+      <span class="sp"></span>
+      <div class="seg" id="viewSeg"><button data-view="kart">Öğrenci öğrenci</button><button data-view="tablo">Tablo (form görünümü)</button></div>
+    </div>
+    <div id="t_body"></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="step">3</span> Sınıf toplamları <small>Otomatik hesaplanır</small></h2>
+    <div class="stats" id="t_stats"></div>
+    <div class="sums" id="t_sum"></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="step">4</span> Okula gönderin</h2>
+    <p class="muted" style="margin:0 0 6px">Gönderilen bilgi yalnızca <b>sayılardan</b> oluşur: şubenizin her madde için kaç öğrencisi olduğu. Öğrenci adları ve işaretleri bu cihazdan çıkmaz.</p>
+    <div class="row">
+      <button class="b primary" id="btnGonder">Okula gönder</button>
+      <span class="muted" id="gonderDurum" style="font-size:13px"></span>
+      <span class="sp"></span>
+      <button class="b" id="btnXlsS">Excel: Sınıf Risk Haritası</button>
+      <button class="b" id="btnPrintS">🖨 Yazdır / PDF</button>
+      <button class="b danger" id="btnClearS">Sınıfı temizle</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= OKUL ================= -->
+<section class="tab" id="tab-okul">
+  <div class="note">🔒 Şubelerden yalnızca <b>sayılar</b> gelir; öğrenci adları hiçbir zaman gönderilmez. Okul risk haritası bu sayılardan <b>kendiliğinden</b> oluşur.</div>
+
+  <div class="card">
+    <h2><span class="step">1</span> Okul bilgileri</h2>
+    <div class="grid">
+      <label>Okul adı (tam ad)<input data-o="okul"></label>
+      <label>İlçe<input data-o="ilce"></label>
+      <label>Toplam öğrenci sayısı<input data-o="ogrSay" type="number" min="0"></label>
+      <label>Toplam öğretmen sayısı<input data-o="ogretmenSay" type="number" min="0"></label>
+      <label>Rehberlik öğretmeni / sorumlu müdür yrd.<input data-o="rehber" placeholder="Ad Soyad"></label>
+      <label>Okul müdürü<input data-o="mudur" placeholder="Ad Soyad"></label>
+    </div>
+    <label style="margin-top:12px">Okuldaki şubeler (teslim takibi için; virgül ya da boşlukla ayırın)
+      <textarea data-o="subeler" style="min-height:56px" placeholder="1-A, 1-B, 1-C, 2-A, 2-B, 3-A, 3-B, 4-A, 4-B"></textarea>
+    </label>
+    <div class="row" style="margin-top:6px">
+      <button class="b" id="btnQS">e-Okul listesinden yeniden doldur</button>
+    </div>
+    <div id="o_status"></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="step">2</span> Sınıflardan gelen verileri ekleyin</h2>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
+      <div>
+        <div class="drop" id="drop" style="cursor:default">
+          <b id="gelenDurum">Şube verileri yükleniyor…</b><br>
+          <span style="font-size:13px">Öğretmenler &ldquo;Okula gönder&rdquo; dediğinde tablo kendiliğinden güncellenir.</span>
+        </div>
+      </div>
+      <div>
+        <div class="row" style="margin-top:6px">
+          <input id="manSinif" class="w80" placeholder="Şube">
+          <button class="b" id="btnMan" title="Kâğıtla teslim edilen sınıf için boş satır açar">+ Elle sınıf ekle</button>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button class="b" id="btnListeYukle">Sınıf listelerini yükle</button>
+          <input type="file" id="listeIn" accept=".json" hidden>
+          <span class="muted" id="listeDurum" style="font-size:13px"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="step">3</span> Okul Risk Haritası <small>Hücreler düzenlenebilir · Aynı şubeden yeni dosya gelirse eskisinin yerine geçer</small></h2>
+    <div class="tw" id="o_table"></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="step">4</span> Özet</h2>
+    <div class="stats" id="o_stats"></div>
+    <div class="bars" id="o_chart"></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="step">5</span> Çıktılar ve RAM'a gönderim</h2>
+    <div class="row" style="margin-bottom:12px">
+      <button class="b primary" id="btnXlsO">Excel: Okul Risk Haritası</button>
+      <button class="b" id="btnPrintO">🖨 Yazdır / PDF</button>
+      <button class="b" id="btnCopyAll">⧉ RAM formu değerlerini kopyala</button>
+      <span class="sp"></span>
+      <button class="b" id="btnBackup">Yedek al</button>
+      <button class="b" id="btnRestore">Yedek yükle</button>
+      <input type="file" id="restoreIn" accept=".json" hidden>
+      <button class="b danger" id="btnClearO">Okul verisini temizle</button>
+    </div>
+    <div class="warnbox" style="margin-bottom:10px">RAM'ın çevrim içi formuna (Google Form) girilecek değerler aşağıdadır; sıralama formdaki soru sırasıyla aynıdır. Karşılığı olmayan maddeye <b>0</b> yazılır.</div>
+    <div class="formlist" id="o_form"></div>
+    <details id="o_namesBox" style="display:none">
+      <summary>Birey bazında çalışma listesi (adlı gönderilen sınıflardan)</summary>
+      <div class="nlist" id="o_names" style="margin-top:10px"></div>
+    </details>
+  </div>
+</section>
+
+<!-- ================= YARDIM ================= -->
+<section class="tab help" id="tab-yardim">
+  <div class="card">
+    <h2>Süreç üç adımdır</h2>
+    <div class="flow">
+      <div class="fl"><b>1 · Sınıf rehber öğretmeni</b>Kasım ayında “Sınıf Öğretmeni” sekmesinde sınıfını doldurur ve <i>Okula gönder</i> der; şube sayıları rehberlik servisine anında ulaşır. Bir nüshasını (Excel/çıktı) sınıf rehberlik dosyasına koyar.<br><small class="muted">RPD Hizmetleri Yönetmeliği md. 23</small></div>
+      <div class="fl"><b>2 · Rehberlik öğretmeni (yoksa sorumlu müdür yrd.)</b>“Okul” sekmesini açar. Gönderen şubeler tabloya kendiliğinden düşer; eksik kalan sınıflar şube takibinde görünür. Excel/çıktı alınıp müdüre sunulur.<br><small class="muted">RPD Hizmetleri Yönetmeliği md. 21</small></div>
+      <div class="fl"><b>3 · Okul müdürü</b>Okul risk haritasını onaylar ve <b>kasım ayı bitmeden</b> resmî yazı ekinde bağlı olunan RAM'a gönderir. RAM çevrim içi form istiyorsa “RAM formu değerleri” kullanılır.<br><small class="muted">RPD Hizmetleri Yönetmeliği md. 18/m</small></div>
+    </div>
+
+    <h3>Öğretmenler için kısa kullanım</h3>
+    <ol>
+      <li>Sınıf/şube, adınız ve sınıf mevcudunu yazın.</li>
+      <li>En üstten <b>şubenizi seçin</b>; öğrenci listeniz ve adınız kendiliğinden gelir. Listede olmayan öğrenciyi “Ekle” ile ekleyebilirsiniz.</li>
+      <li>Her öğrencide uygun maddelere tıklayın. Tablo görünümünü seçerseniz form, kâğıttaki gibi görünür.</li>
+      <li><b>“Okula gönder”</b> deyin. Öğrenci bilgileri tarayıcınızda kalır; sonra dönüp düzeltip yeniden gönderebilirsiniz.</li>
+    </ol>
+
+    <h3>Bilgiler nereden alınır?</h3>
+    <p>Gözlem, bilgi formları ve bireysel görüşmeler, e-Okul verileri, uygulanan bireyi tanıma teknikleri ve öğretmen/veli/diğer paydaşlardan edinilen bilgiler. Form öğrencilere çoğaltılıp dağıtılmaz; öğretmen tarafından doğrudan doldurulur.</p>
+
+    <h3>“Diğer” maddesi</h3>
+    <p>Gözlem, görüşme ve bireyi tanıma teknikleriyle risk altında olduğu görülen öğrenciler “Diğer” altında bildirilir. Örnek: özgüven eksikliği, antisosyal davranış, okula karşı olumsuz tutum, sınıfta dışlanma, akran zorbalığına maruz kalma, şiddet eğilimi, ailenin olanakları nedeniyle sosyal yaşantı eksikliği, istismar ya da ihmal türlerine maruz kalma, olumsuz anne-baba tutumları, alkol, madde veya teknoloji bağımlılığı.</p>
+
+    <h3>Kişisel verilerin korunması</h3>
+    <ul>
+      <li>Öğrenci adları ve işaretleri sunucuya gitmez; bu tarayıcıda kalır. Okula giden tek şey şubenin madde <b>sayılarıdır</b>.</li>
+      <li>Sınıf listeleri sayfanın kaynağına gömülü değildir; sunucudan gelir. Öğretmenin giriş yapmasına gerek yoktur.</li>
+      <li>Okul risk haritasını yalnızca rehberlik servisi ve idare görebilir; öğretmen hesabı diğer şubelerin verisini okuyamaz.</li>
+      <li>Ortak bilgisayarlarda iş bitince “temizle” düğmelerini kullanın.</li>
+      <li>Öğrenci adları kısaltılmış görünür (adın ve soyadın ilk üç harfi); tam ad hiçbir yerde tutulmaz. Yine de bu sayfanın adresini okul dışına vermeyin.</li>
+    </ul>
+    <p class="muted" style="font-size:13px">Form maddeleri ÖERHGM “Sınıf Risk Haritası (S.İ.4.a)” ve “Okul Risk Haritası (S.İ.2.a)” formlarıyla aynıdır (36 madde).</p>
+  </div>
+</section>
+</main>
+
+<dialog id="dlgPaste">
+  <div class="dlg">
+    <h3>Sınıf listesini yapıştırın</h3>
+    <p class="muted" style="margin:0 0 8px;font-size:13.5px">e-Okul'daki sınıf listesini (ya da Excel'deki “No – Ad Soyad” sütunlarını) seçip kopyalayın ve aşağıya yapıştırın. Her satır bir öğrenci olmalı. Örnek: <code>123 Ahmet Yılmaz</code></p>
+    <textarea id="pasteTxt" style="min-height:220px"></textarea>
+    <div class="row" style="margin-top:10px"><span class="muted" id="pastePrev" style="font-size:13px"></span><span class="sp"></span>
+      <button class="b" id="pasteCancel">Vazgeç</button><button class="b primary" id="pasteOk">Listeye ekle</button></div>
+  </div>
+</dialog>
+
+<div id="printArea"></div>
+<div id="toast"></div>
+
+<script>
+"use strict";
+/* ================== ŞUBE LİSTELERİ (e-Okul, 18.11.2026) ================== */
+/* Sınıf listeleri sayfaya gömülü DEĞİLDİR. Giriş yapıldıktan sonra
+   Firebase'den gelir; bu dosyanın kendisinde hiçbir öğrenci adı yoktur. */
+var LISTE = {};
+var LISTE_SUBELER = [];
+var LISTE_TOPLAM = 0;
+
+/* ================== SABİTLER ================== */
+const YIL = '2026-2027';
+const KOD_ON = 'RH27-';
+const CATS = [
+ 'Anne en fazla ilkokul mezunu','Baba en fazla ilkokul mezunu','Tek çocuk olan','5 ve üstü kardeşi olan',
+ 'Anne ve babası ayrı yaşayan','Anne ve babası boşanmış olan','Yalnızca annesi ile yaşayan','Yalnızca babası ile yaşayan',
+ 'Annesi hayatta olmayan','Babası hayatta olmayan','Anne ve babası hayatta olmayan','Şehit Çocuğu',
+ 'Yalnızca büyükanne/büyükbabasıyla yaşayan','Yalnızca diğer akrabalarıyla yaşayan','Koruyucu aile gözetiminde olan','Sevgi Evlerinde kalan','Sosyal Hizmetler Çocuk Esirgeme Kurumunda kalan',
+ 'Ailesinde süreğen hastalığı olan','Ailesinde ruhsal hastalığı olan','Ailesinde Bağımlı Bireyler Bulunan (alkol/madde)','Ailesinde cezai hükmü bulunan','Ailesi mevsimlik işçi olan','Aile içi şiddete maruz kalan',
+ 'Özel Yetenekli tanısı olan','Yetersizlik alanında özel eğitim raporu olan','Süreğen hastalığı olan','Ruhsal hastalığı olan',
+ 'Danışmanlık Tedbir Kararı Olan','Eğitim Tedbir Kararı Olan',
+ 'Maddi Sıkıntı Yaşayan','Sürekli Devamsız olan','Bir işte çalışan','Akademik Başarısı Düşük','Riskli akran grubuna dahil olan',
+ 'Yabancı uyruklu öğrenci','Diğer'
+];
+const N = CATS.length; // 36
+const okulEtiket = i => i===34 ? 'Okulda bulunan yabancı uyruklu öğrenci sayısı' : CATS[i];
+const GROUPS = [
+ {ad:'Anne-baba eğitimi ve kardeş durumu', ids:[0,1,2,3]},
+ {ad:'Aile yapısı', ids:[4,5,6,7,8,9,10,11]},
+ {ad:'Bakım ve barınma', ids:[12,13,14,15,16]},
+ {ad:'Ailede sağlık ve sosyal durum', ids:[17,18,19,20,21,22]},
+ {ad:'Öğrencinin sağlık ve özel eğitim durumu', ids:[23,24,25,26]},
+ {ad:'Tedbir kararları', ids:[27,28]},
+ {ad:'Sosyo-ekonomik ve akademik durum', ids:[29,30,31,32,33]},
+ {ad:'Diğer', ids:[34,35]}
+];
+const grpOf = i => GROUPS.findIndex(g=>g.ids.includes(i));
+
+/* ================== YARDIMCILAR ================== */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const up = s => String(s||'').toLocaleUpperCase('tr-TR');
+const store = {
+  get(k,d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+let toastT;
+function toast(m, ms=2600){ const t=$('#toast'); t.textContent=m; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'), ms); }
+function indir(ad, icerik, tip='application/json'){
+  const b = new Blob([icerik], {type:tip+';charset=utf-8'}); const a=document.createElement('a');
+  a.href=URL.createObjectURL(b); a.download=ad; document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();}, 500);
+}
+async function kopyala(txt){
+  try{ await navigator.clipboard.writeText(txt); return true; }
+  catch(e){ const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select();
+    let ok=false; try{ ok=document.execCommand('copy'); }catch(_){} ta.remove(); return ok; }
+}
+function b64enc(s){ const by=new TextEncoder().encode(s); let bin=''; for(let i=0;i<by.length;i+=8192) bin+=String.fromCharCode.apply(null, by.subarray(i,i+8192)); return btoa(bin); }
+function b64dec(s){ const bin=atob(s); const by=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) by[i]=bin.charCodeAt(i); return new TextDecoder().decode(by); }
+/* Öğrenci adları ekranda ve çıktılarda kısaltılmış görünür: adın ilk
+   üç harfi ve soyadın ilk üç harfi. Okul numarasıyla birlikte öğrenci
+   ayırt edilebiliyor, ama tam ad hiçbir yerde tutulmuyor — ne bu
+   tarayıcıda, ne veritabanında, ne de alınan çıktılarda.
+   İki kez uygulanması sonucu değiştirmez.                            */
+function maskeAd(ad){
+  const p = String(ad||'').trim().split(/\s+/).filter(Boolean);
+  if(!p.length) return '';
+  const kisalt = w => { const u = up(w); return u.length <= 3 ? u : u.slice(0,3) + '…'; };
+  return p.length === 1 ? kisalt(p[0]) : kisalt(p[0]) + ' ' + kisalt(p[p.length-1]);
+}
+
+function normSinif(s){
+  let x = up(String(s||'').trim());
+  x = x.replace(/\.?\s*SINIF(I)?\s*/g,'-').replace(/\s*ŞUBES[İI]\s*/g,'').replace(/[\/\\.\s_]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+  return x;
+}
+function sinifSirala(a,b){
+  const pa=a.match(/^(\d+)/), pb=b.match(/^(\d+)/);
+  const na=pa?+pa[1]:(/ANA/.test(a)?0:99), nb=pb?+pb[1]:(/ANA/.test(b)?0:99);
+  return na-nb || a.localeCompare(b,'tr');
+}
+const dosyaAdi = s => String(s||'').replace(/[^\wçğıöşüÇĞİÖŞÜ\-]+/g,'_');
+const bugun = () => new Date().toLocaleDateString('tr-TR');
+
+/* ================== SEKMELER ================== */
+function sekme(ad){
+  $$('.tabs button').forEach(b=>b.classList.toggle('on', b.dataset.tab===ad));
+  $$('.tab').forEach(t=>t.classList.toggle('on', t.id==='tab-'+ad));
+  store.set('rh27_sekme', ad);
+  if(ad==='okul') renderOkul();
+}
+$$('.tabs button').forEach(b=>b.onclick=()=>sekme(b.dataset.tab));
+
+/* ======================================================
+   SINIF ÖĞRETMENİ
+   ====================================================== */
+const T = Object.assign({okul:'Cevdet Güçlüer İlkokulu', sinif:'', ogretmen:'', mevcut:'', ogr:[], sel:null, view:'kart', isimli:false},
+                        store.get('rh27_sinif', {}));
+const saveT = () => store.set('rh27_sinif', T);
+const yeniId = () => Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+
+function sinifSayilari(){ const c = new Array(N).fill(0); T.ogr.forEach(o=>o.r.forEach(i=>c[i]++)); return c; }
+const riskliler = () => T.ogr.filter(o=>o.r.length);
+
+$$('#tab-sinif [data-f]').forEach(inp=>{
+  inp.value = T[inp.dataset.f] ?? '';
+  inp.addEventListener('input', ()=>{ T[inp.dataset.f]=inp.value; saveT(); if(inp.dataset.f!=='okul') renderTOzet(); });
+});
+$('#t_sinif').addEventListener('blur', e=>{ const n=normSinif(e.target.value); if(n){ e.target.value=n; T.sinif=n; saveT(); } });
+function subeSecimiDoldur(){
+  $('#t_sube').innerHTML = '<option value="">— Şube seçin —</option>' +
+    LISTE_SUBELER.map(k=>`<option value="${k}">${k}${LISTE[k].o?' · '+up(LISTE[k].o):''} (${LISTE[k].s.length})</option>`).join('');
+}
+subeSecimiDoldur();
+function subeBilgiGoster(){ const k=normSinif(T.sinif); $('#t_sube').value = LISTE[k]?k:''; $('#t_subeBilgi').textContent = LISTE[k] ? `${LISTE[k].s.length} öğrenci yüklü listede` : ''; }
+$('#t_sube').onchange = e=>{
+  const k=e.target.value; if(!k){ subeBilgiGoster(); return; }
+  if(normSinif(T.sinif)===k && T.ogr.length){ subeBilgiGoster(); return; }
+  const isaret=T.ogr.reduce((a,o)=>a+o.r.length,0);
+  if(isaret && !confirm(`Şu an ${T.sinif||'bu sınıf'} için ${isaret} işaret var. ${k} şubesine geçilirse bu işaretler silinecek. Devam edilsin mi?\n\n(Önce “Okula gönder” demediyseniz “Vazgeç” deyin.)`)){ subeBilgiGoster(); return; }
+  const L=LISTE[k];
+  T.sinif=k; T.mevcut=String(L.s.length); if(L.o) T.ogretmen=L.o.toLocaleLowerCase('tr-TR').replace(/(^|\s)\S/g,c=>c.toLocaleUpperCase('tr-TR'));
+  else T.ogretmen='';
+  T.ogr=L.s.map(([no,ad])=>({id:yeniId(), no, ad:maskeAd(ad), r:[], not:''})); T.sel=T.ogr[0]?.id||null;
+  saveT(); $$('#tab-sinif [data-f]').forEach(inp=>inp.value=T[inp.dataset.f]??''); renderT(); subeBilgiGoster();
+  toast(`${k}: ${L.s.length} öğrenci yüklendi.${L.o?'':' Öğretmen adını yazmayı unutmayın.'}`);
+  if(!L.o) $('#t_ogretmen').focus();
+};
+subeBilgiGoster();
+
+function ekleOgr(no, ad){
+  ad = maskeAd(ad); if(!ad) return false;
+  const o = {id:yeniId(), no:String(no||'').trim(), ad, r:[], not:''};
+  T.ogr.push(o); return o;
+}
+$('#btnAdd').onclick = ()=>{
+  const o = ekleOgr($('#newNo').value, $('#newAd').value);
+  if(!o){ toast('Öğrencinin adını yazın.'); $('#newAd').focus(); return; }
+  T.sel=o.id; $('#newNo').value=''; $('#newAd').value=''; saveT(); renderT(); $('#newNo').focus();
+};
+$('#newAd').addEventListener('keydown', e=>{ if(e.key==='Enter') $('#btnAdd').click(); });
+$('#newNo').addEventListener('keydown', e=>{ if(e.key==='Enter') $('#newAd').focus(); });
+
+/* liste yapıştırma */
+function listeCoz(txt){
+  const out=[];
+  String(txt||'').split(/\r?\n/).forEach(l=>{
+    l=l.trim(); if(!l) return;
+    let no='', ad='';
+    const cols = l.split(/\t|;|\s{2,}/).map(s=>s.trim()).filter(Boolean);
+    if(cols.length>1){
+      const nums = cols.filter(c=>/^\d+\.?$/.test(c)).map(c=>c.replace('.',''));
+      const txts = cols.filter(c=>!/^\d+\.?$/.test(c) && /[A-Za-zÇĞİÖŞÜçğıöşü]/.test(c));
+      no = nums.length ? nums[nums.length-1] : ''; ad = txts.join(' ');
+    } else {
+      const m = l.match(/^(?:\d+[\s.)\-]+)?(\d+)[\s.)\-]+(.+)$/);
+      if(m){ no=m[1]; ad=m[2]; } else ad=l;
+    }
+    ad = ad.replace(/\s+/g,' ').trim();
+    if(!ad || /^(s\.?\s*no|sıra|okul\s*no|ad[ıi]?\s*soyad|öğrenci|cinsiyet)/i.test(ad)) return;
+    if(!/[A-Za-zÇĞİÖŞÜçğıöşü]/.test(ad)) return;
+    out.push({no, ad});
+  });
+  return out;
+}
+const dlg = $('#dlgPaste');
+$('#btnPaste').onclick = ()=>{ $('#pasteTxt').value=''; $('#pastePrev').textContent=''; dlg.showModal(); $('#pasteTxt').focus(); };
+$('#pasteCancel').onclick = ()=>dlg.close();
+$('#pasteTxt').addEventListener('input', ()=>{ const l=listeCoz($('#pasteTxt').value); $('#pastePrev').textContent = l.length ? `${l.length} öğrenci bulundu · ilki: ${l[0].no?l[0].no+' – ':''}${maskeAd(l[0].ad)}` : ''; });
+$('#pasteOk').onclick = ()=>{
+  const l = listeCoz($('#pasteTxt').value);
+  if(!l.length){ toast('Listede öğrenci bulunamadı.'); return; }
+  let eklenen=0;
+  l.forEach(x=>{
+    const var_ = T.ogr.some(o=> (x.no && o.no===x.no) || up(o.ad)===up(x.ad));
+    if(!var_){ ekleOgr(x.no, x.ad); eklenen++; }
+  });
+  if(!T.sel && T.ogr.length) T.sel=T.ogr[0].id;
+  if(!T.mevcut){ T.mevcut = String(T.ogr.length); $('#t_mevcut').value=T.mevcut; }
+  saveT(); dlg.close(); renderT();
+  toast(`${eklenen} öğrenci eklendi${l.length-eklenen? ` (${l.length-eklenen} zaten listede)`:''}.`);
+};
+
+function toggleRisk(o, i){
+  const k=o.r.indexOf(i); if(k>=0) o.r.splice(k,1); else { o.r.push(i); o.r.sort((a,b)=>a-b); }
+  saveT();
+}
+function silOgr(id){
+  const o=T.ogr.find(x=>x.id===id); if(!o) return;
+  if(o.r.length && !confirm(`${o.ad} için işaretlenmiş ${o.r.length} madde var. Silinsin mi?`)) return;
+  T.ogr = T.ogr.filter(x=>x.id!==id); if(T.sel===id) T.sel = T.ogr[0]?.id || null; saveT(); renderT();
+}
+
+$$('#viewSeg button').forEach(b=>b.onclick=()=>{ T.view=b.dataset.view; saveT(); renderT(); });
+
+function renderT(){
+  $$('#viewSeg button').forEach(b=>b.classList.toggle('on', b.dataset.view===T.view));
+  const body=$('#t_body');
+  if(!T.ogr.length){
+    body.innerHTML = `<div class="empty">Henüz öğrenci yok. <b>e-Okul listesini yapıştır</b> ile tüm sınıfı ekleyebilir ya da yalnızca risk taşıyan öğrencileri tek tek ekleyebilirsiniz.</div>`;
+    renderTOzet(); return;
+  }
+  if(T.view==='tablo') renderTablo(body); else renderKart(body);
+  renderTOzet();
+}
+function renderKart(body){
+  if(!T.ogr.find(o=>o.id===T.sel)) T.sel=T.ogr[0].id;
+  const o = T.ogr.find(x=>x.id===T.sel);
+  const idx = T.ogr.indexOf(o);
+  body.innerHTML = `<div class="split">
+    <div class="stlist">${T.ogr.map(s=>`<div class="st ${s.id===T.sel?'on':''}" data-id="${s.id}">
+        <span class="no">${esc(s.no)}</span><span class="ad">${esc(s.ad)}</span>
+        <span class="badge ${s.r.length?'has':''}">${s.r.length}</span>
+        <button class="x" data-del="${s.id}" title="Sil">×</button></div>`).join('')}</div>
+    <div class="editor">
+      <div class="edhead">
+        <button class="b" id="prevO" ${idx<=0?'disabled':''}>‹ Önceki</button>
+        <h3>${esc(o.no?o.no+' · ':'')}${esc(o.ad)}</h3>
+        <span class="badge ${o.r.length?'has':''}">${o.r.length} madde</span>
+        <span class="sp"></span>
+        <button class="b" id="nextO" ${idx>=T.ogr.length-1?'disabled':''}>Sonraki ›</button>
+      </div>
+      ${GROUPS.map(g=>`<div class="grp">${g.ad}</div><div class="chips">${g.ids.map(i=>
+        `<button class="chip ${o.r.includes(i)?'on':''}" data-r="${i}"><span class="n">${i+1}.</span>${esc(CATS[i])}</button>`).join('')}</div>`).join('')}
+      <div id="digerBox" style="margin-top:10px;${o.r.includes(35)?'':'display:none'}">
+        <label>“Diğer” için kısa açıklama (yalnızca sizin kaydınız ve sınıf çıktısı için)
+          <input id="digerNot" value="${esc(o.not)}" placeholder="Örn. akran zorbalığına maruz kalıyor"></label>
+      </div>
+    </div></div>`;
+  body.querySelectorAll('.st').forEach(el=>el.onclick=e=>{ if(e.target.dataset.del) return; T.sel=el.dataset.id; saveT(); renderT(); });
+  body.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>silOgr(b.dataset.del));
+  body.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ toggleRisk(o, +c.dataset.r); renderT(); });
+  const dn=$('#digerNot'); if(dn) dn.oninput=()=>{ o.not=dn.value; saveT(); };
+  $('#prevO').onclick=()=>{ T.sel=T.ogr[idx-1].id; saveT(); renderT(); };
+  $('#nextO').onclick=()=>{ T.sel=T.ogr[idx+1].id; saveT(); renderT(); };
+  const on=body.querySelector('.st.on'); if(on) on.scrollIntoView({block:'nearest'});
+}
+function renderTablo(body){
+  const c=sinifSayilari();
+  body.innerHTML = `<div class="tw"><table class="m"><thead><tr>
+     <th class="nm">Okul No · Ad Soyad</th>
+     ${CATS.map((t,i)=>`<th class="v g${grpOf(i)}" title="${esc(t)}"><div>${i+1}. ${esc(t)}</div></th>`).join('')}<th></th></tr></thead>
+    <tbody>${T.ogr.map(o=>`<tr><td class="nm">${esc(o.no?o.no+' · ':'')}${esc(o.ad)}</td>
+      ${CATS.map((_,i)=>`<td class="c ${o.r.includes(i)?'on':''}" data-o="${o.id}" data-i="${i}">${o.r.includes(i)?'X':''}</td>`).join('')}
+      <td><button class="x" data-del="${o.id}">×</button></td></tr>`).join('')}
+    <tr class="tot"><td class="nm">TOPLAM</td>${c.map(v=>`<td>${v||''}</td>`).join('')}<td></td></tr></tbody></table></div>
+    <p class="muted" style="font-size:12.5px;margin:6px 2px 0">Hücreye tıklayarak işaret koyun ya da kaldırın.</p>`;
+  body.querySelectorAll('td.c').forEach(td=>td.onclick=()=>{
+    const o=T.ogr.find(x=>x.id===td.dataset.o); const i=+td.dataset.i; toggleRisk(o,i);
+    const on=o.r.includes(i); td.classList.toggle('on',on); td.textContent=on?'X':'';
+    const cc=sinifSayilari(); body.querySelectorAll('tr.tot td').forEach((t,k)=>{ if(k>0 && k<=N) t.textContent=cc[k-1]||''; });
+    renderTOzet();
+  });
+  body.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>silOgr(b.dataset.del));
+}
+function renderTOzet(){
+  const c=sinifSayilari(), rk=riskliler().length, top=c.reduce((a,b)=>a+b,0);
+  $('#t_stats').innerHTML = `
+    <div class="stat"><div class="k">Sınıf / Şube</div><div class="v">${esc(T.sinif||'—')}</div></div>
+    <div class="stat"><div class="k">Listedeki öğrenci</div><div class="v">${T.ogr.length}</div></div>
+    <div class="stat"><div class="k">En az bir maddesi olan</div><div class="v">${rk}</div></div>
+    <div class="stat"><div class="k">Toplam işaret</div><div class="v">${top}</div></div>`;
+  $('#t_sum').innerHTML = c.map((v,i)=>`<div class="sumi ${v?'':'z'}"><span>${i+1}. ${esc(CATS[i])}</span><b>${v}</b></div>`).join('');
+}
+
+/* gönderim paketi */
+function paket(){
+  return {
+    v:1, tip:'RH-SINIF', yil:YIL, okul:T.okul||'', sinif:normSinif(T.sinif), ogretmen:T.ogretmen||'',
+    mevcut:+T.mevcut||0, riskli:riskliler().length, c:sinifSayilari(), t:new Date().toISOString(),
+    /* Ad soyad hiçbir koşulda pakete girmez: okula yalnızca sayılar gider. */
+  };
+}
+function gonderimKontrol(){
+  const s=normSinif(T.sinif);
+  if(!s){ toast('Önce sınıf/şube bilgisini yazın.'); $('#t_sinif').focus(); return false; }
+  if(!T.ogretmen.trim()){ toast('Sınıf rehber öğretmeninin adını yazın.'); $('#t_ogretmen').focus(); return false; }
+  if(!riskliler().length && !confirm('Hiçbir öğrenci için madde işaretlenmedi. Sınıfınız “bütün maddeler 0” olarak gönderilsin mi?')) return false;
+  return true;
+}
+$('#btnGonder').onclick = async ()=>{
+  if(!gonderimKontrol()) return;
+  const d = $('#gonderDurum'); d.textContent = 'Gönderiliyor…';
+  try{
+    await window.__rhGonder(paket());
+    d.textContent = 'Gönderildi · ' + new Date().toLocaleString('tr-TR');
+    toast('Şube özetiniz okula iletildi.');
+  }catch(e){
+    d.textContent = '';
+    toast('Gönderilemedi: ' + (e && e.message ? e.message : 'bağlantı hatası'));
+  }
+};
+$('#btnClearS').onclick = ()=>{
+  if(!confirm('Bu sınıfa ait bütün öğrenci ve işaretler silinecek. Emin misiniz?')) return;
+  Object.assign(T, {sinif:'', ogretmen:'', mevcut:'', ogr:[], sel:null}); saveT();
+  $$('#tab-sinif [data-f]').forEach(inp=>inp.value=T[inp.dataset.f]??''); renderT(); subeBilgiGoster(); toast('Sınıf verileri temizlendi.');
+};
+
+/* ======================================================
+   OKUL
+   ====================================================== */
+const O = Object.assign({okul:'Cevdet Güçlüer İlkokulu', ilce:'Karabağlar', ogrSay:String(LISTE_TOPLAM), ogretmenSay:'', rehber:'', mudur:'', subeler:LISTE_SUBELER.join(', '), rows:{}},
+                        store.get('rh27_okul', {}));
+const saveO = () => store.set('rh27_okul', O);
+
+$$('#tab-okul [data-o]').forEach(inp=>{
+  inp.value = O[inp.dataset.o] ?? '';
+  inp.addEventListener('input', ()=>{ O[inp.dataset.o]=inp.value; saveO(); if(inp.dataset.o==='subeler') renderDurum(); if(['okul','ilce','ogrSay','ogretmenSay'].includes(inp.dataset.o)) renderForm(); });
+});
+$('#btnQS').onclick = ()=>{ O.subeler=LISTE_SUBELER.join(', '); O.ogrSay=String(LISTE_TOPLAM); $('[data-o="subeler"]').value=O.subeler; $('[data-o="ogrSay"]').value=O.ogrSay; saveO(); renderDurum(); renderForm(); toast(`${LISTE_SUBELER.length} şube, ${LISTE_TOPLAM} öğrenci.`); };
+
+function subeListesi(){ return String(O.subeler||'').split(/[,;\s]+/).map(normSinif).filter(Boolean); }
+function renderDurum(){
+  const L=subeListesi(), keys=Object.keys(O.rows);
+  if(!L.length && !keys.length){ $('#o_status').innerHTML=''; return; }
+  const gelen=L.filter(s=>O.rows[s]).length;
+  const fazla=keys.filter(k=>!L.includes(k));
+  $('#o_status').innerHTML = `<div style="margin-top:12px;font-size:13.5px"><b>Teslim durumu:</b> ${L.length? `${gelen} / ${L.length} şube teslim etti`:'şube listesi girilmedi'}
+    ${L.length && gelen<L.length ? ` · <span style="color:var(--warn)">bekleyen: ${L.filter(s=>!O.rows[s]).map(s=>LISTE[s]&&LISTE[s].o?`${s} (${up(LISTE[s].o)})`:s).join(', ')}</span>`:''}</div>
+    <div class="subes">${L.map(s=>`<span class="sb ${O.rows[s]?'ok':'no'}" title="${esc(LISTE[s]?.o||'')}">${O.rows[s]?'✓ ':''}${esc(s)}</span>`).join('')}
+    ${L.length? fazla.map(s=>`<span class="sb extra" title="Şube listesinde yok">? ${esc(s)}</span>`).join(''):''}</div>`;
+}
+
+/* içe aktarma */
+function paketDogrula(p){
+  if(!p || p.tip!=='RH-SINIF' || !Array.isArray(p.c) || p.c.length!==N) return 'Geçerli bir sınıf risk haritası dosyası değil';
+  if(!normSinif(p.sinif)) return 'Sınıf/şube bilgisi yok';
+  return null;
+}
+function paketEkle(p, kaynak){
+  const k=normSinif(p.sinif); const eski=O.rows[k];
+  O.rows[k] = {sinif:k, ogretmen:p.ogretmen||'', mevcut:+p.mevcut||0, riskli:+p.riskli||0, c:p.c.map(v=>Math.max(0,parseInt(v)||0)),
+               t:p.t||new Date().toISOString(), kaynak, ogr:Array.isArray(p.ogr)?p.ogr:null};
+  return eski ? 'guncel' : 'yeni';
+}
+function iceAktarMetin(txt, kaynak, sonuc){
+  txt=String(txt||'').trim();
+  // JSON dosyası
+  if(txt.startsWith('{')){
+    try{ const p=JSON.parse(txt); const h=paketDogrula(p); if(h){ sonuc.hata.push(h); return; } sonuc[paketEkle(p,kaynak)].push(normSinif(p.sinif)); }
+    catch(e){ sonuc.hata.push('Dosya okunamadı'); }
+    return;
+  }
+  const kodlar = txt.match(/RH27-[A-Za-z0-9+/=]+/g) || [];
+  if(!kodlar.length){ sonuc.hata.push('Kod bulunamadı'); return; }
+  kodlar.forEach(kd=>{
+    try{ const p=JSON.parse(b64dec(kd.slice(KOD_ON.length))); const h=paketDogrula(p); if(h){ sonuc.hata.push(h); return; } sonuc[paketEkle(p,kaynak)].push(normSinif(p.sinif)); }
+    catch(e){ sonuc.hata.push('Bozuk kod (eksik kopyalanmış olabilir)'); }
+  });
+}
+function sonucBildir(s){
+  saveO(); renderOkul();
+  const m=[]; if(s.yeni.length) m.push(`${s.yeni.length} sınıf eklendi (${s.yeni.join(', ')})`);
+  if(s.guncel.length) m.push(`${s.guncel.length} sınıf güncellendi (${s.guncel.join(', ')})`);
+  if(s.hata.length) m.push(`${s.hata.length} hata: ${[...new Set(s.hata)].join('; ')}`);
+  toast(m.join(' · ') || 'Bir şey eklenmedi.', 4500);
+}
+async function dosyalariAl(files){
+  const s={yeni:[],guncel:[],hata:[]};
+  for(const f of files){ const t=await f.text(); iceAktarMetin(t,'dosya',s); }
+  sonucBildir(s);
+}
+/* Dosya ve kod ile içe aktarma kaldırıldı: şube özetleri Firebase'den
+   canlı gelir. iceAktarMetin/paketEkle yine duruyor, yedek yükleme kullanıyor. */
+$('#btnMan').onclick=()=>{
+  const k=normSinif($('#manSinif').value); if(!k){ toast('Şube adını yazın (örn. 2-B).'); $('#manSinif').focus(); return; }
+  if(O.rows[k]){ toast(`${k} zaten tabloda.`); return; }
+  O.rows[k]={sinif:k, ogretmen:'', mevcut:0, riskli:0, c:new Array(N).fill(0), t:new Date().toISOString(), kaynak:'elle', ogr:null};
+  $('#manSinif').value=''; saveO(); renderOkul(); toast(`${k} eklendi; sayıları tabloya yazın.`);
+};
+
+function okulToplam(){ const t=new Array(N).fill(0); Object.values(O.rows).forEach(r=>r.c.forEach((v,i)=>t[i]+=(+v||0))); return t; }
+const siraliAnahtar = () => Object.keys(O.rows).sort(sinifSirala);
+
+function renderOkul(){ renderDurum(); renderOTablo(); renderOOzet(); renderForm(); renderIsimler(); }
+function renderOTablo(){
+  const keys=siraliAnahtar(), box=$('#o_table');
+  if(!keys.length){ box.innerHTML=`<div class="empty">Henüz sınıf verisi yok. Öğretmenlerden gelen dosyaları 2. adımda ekleyin.</div>`; return; }
+  const t=okulToplam();
+  box.innerHTML = `<table class="m"><thead><tr><th class="nm" style="min-width:150px">Sıra · Sınıf/Şube</th>
+    ${CATS.map((_,i)=>`<th class="v g${grpOf(i)}" title="${esc(okulEtiket(i))}"><div>${i+1}. ${esc(okulEtiket(i))}</div></th>`).join('')}
+    <th style="min-width:130px">Kaynak</th><th></th></tr></thead><tbody>
+    ${keys.map((k,ri)=>{ const r=O.rows[k]; return `<tr><td class="nm" title="${esc(r.ogretmen)}">${ri+1}. <b>${esc(k)}</b><br><small class="muted">${esc(r.ogretmen||'')}</small></td>
+      ${r.c.map((v,i)=>`<td><input class="cell ${v?'nz':''}" type="number" min="0" data-k="${esc(k)}" data-i="${i}" value="${v}"></td>`).join('')}
+      <td class="src">${r.kaynak==='elle'?'elle girildi':(r.kaynak==='kod'?'kod':'dosya')}${r.ogr?' · adlı':''}<br>${new Date(r.t).toLocaleDateString('tr-TR')}</td>
+      <td><button class="x" data-delk="${esc(k)}" title="Satırı sil">×</button></td></tr>`; }).join('')}
+    <tr class="tot"><td class="nm">TOPLAM</td>${t.map((v,i)=>`<td data-ti="${i}">${v}</td>`).join('')}<td></td><td></td></tr></tbody></table>`;
+  box.querySelectorAll('input.cell').forEach(inp=>inp.addEventListener('input',()=>{
+    const r=O.rows[inp.dataset.k]; const v=Math.max(0,parseInt(inp.value)||0); r.c[+inp.dataset.i]=v; inp.classList.toggle('nz',!!v); saveO();
+    const tt=okulToplam(); box.querySelectorAll('[data-ti]').forEach(td=>td.textContent=tt[+td.dataset.ti]); renderOOzet(); renderForm();
+  }));
+  box.querySelectorAll('[data-delk]').forEach(b=>b.onclick=()=>{ if(!confirm(`${b.dataset.delk} satırı silinsin mi?`)) return; delete O.rows[b.dataset.delk]; saveO(); renderOkul(); });
+}
+function renderOOzet(){
+  const rows=Object.values(O.rows), t=okulToplam();
+  const riskli=rows.reduce((a,r)=>a+(+r.riskli||0),0), mevcut=rows.reduce((a,r)=>a+(+r.mevcut||0),0);
+  $('#o_stats').innerHTML = `
+    <div class="stat"><div class="k">Teslim eden şube</div><div class="v">${rows.length}</div></div>
+    <div class="stat"><div class="k">Bu şubelerin mevcudu</div><div class="v">${mevcut||'—'}</div></div>
+    <div class="stat"><div class="k">En az bir maddesi olan öğrenci</div><div class="v">${riskli}${mevcut?` <small style="font-size:13px;color:var(--muted)">(%${Math.round(riskli*100/mevcut)})</small>`:''}</div></div>
+    <div class="stat"><div class="k">Toplam işaret</div><div class="v">${t.reduce((a,b)=>a+b,0)}</div></div>`;
+  const sir=t.map((v,i)=>({v,i})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v).slice(0,12), mx=sir[0]?.v||1;
+  $('#o_chart').innerHTML = sir.length ? `<div class="muted" style="font-size:13px;margin-bottom:4px">En sık görülen risk alanları (grup ve birey çalışmalarını planlamak için)</div>`+
+    sir.map(x=>`<div class="bar"><span>${x.i+1}. ${esc(okulEtiket(x.i))}</span><div class="t"><i style="width:${x.v*100/mx}%"></i></div><b>${x.v}</b></div>`).join('')
+    : `<div class="muted">Veri geldikçe burada en sık görülen risk alanları sıralanacak.</div>`;
+}
+function renderForm(){
+  const t=okulToplam();
+  const bas=[['Okulun adı',O.okul],['İlçe',O.ilce],['Toplam öğrenci sayısı',O.ogrSay],['Toplam öğretmen sayısı',O.ogretmenSay]];
+  $('#o_form').innerHTML = bas.map(([k,v])=>`<div class="fi" style="background:#f7f9fb"><span>${k}</span><b style="font-size:13.5px">${esc(v||'—')}</b><button data-cp="${esc(v||'')}">Kopyala</button></div>`).join('') +
+    t.map((v,i)=>`<div class="fi"><span>${i+1}. ${esc(okulEtiket(i))}</span><b>${v}</b><button data-cp="${v}">Kopyala</button></div>`).join('');
+  $('#o_form').querySelectorAll('[data-cp]').forEach(b=>b.onclick=async()=>{ if(await kopyala(b.dataset.cp)){ b.textContent='✓'; setTimeout(()=>b.textContent='Kopyala',1200); } });
+}
+function renderIsimler(){
+  const rows=siraliAnahtar().map(k=>O.rows[k]).filter(r=>r.ogr && r.ogr.length);
+  $('#o_namesBox').style.display = rows.length ? '' : 'none';
+  if(!rows.length) return;
+  const html=[];
+  CATS.forEach((_,i)=>{
+    const L=[]; rows.forEach(r=>r.ogr.forEach(o=>{ if(o.r.includes(i)) L.push(`${r.sinif} · ${o.no?o.no+' ':''}${o.ad}${i===35&&o.not?` (${o.not})`:''}`); }));
+    if(L.length) html.push(`<div><h4>${i+1}. ${esc(okulEtiket(i))} (${L.length})</h4>${L.map(esc).join('<br>')}</div>`);
+  });
+  $('#o_names').innerHTML = html.join('') || '<div class="muted">Adlı sınıflarda işaretli öğrenci yok.</div>';
+}
+$('#btnCopyAll').onclick = async ()=>{
+  const t=okulToplam();
+  const txt = [`Okul: ${O.okul||''}`,`İlçe: ${O.ilce||''}`,`Toplam öğrenci: ${O.ogrSay||''}`,`Toplam öğretmen: ${O.ogretmenSay||''}`,
+    ...t.map((v,i)=>`${i+1}. ${okulEtiket(i)}: ${v}`)].join('\n');
+  toast(await kopyala(txt) ? 'Bütün değerler kopyalandı.' : 'Kopyalanamadı.');
+};
+$('#btnBackup').onclick = ()=>{ indir(`OkulRiskHaritasi_Yedek_${YIL}_${new Date().toISOString().slice(0,10)}.json`, JSON.stringify({tip:'RH-OKUL-YEDEK', yil:YIL, ...O},null,1)); };
+$('#btnRestore').onclick = ()=>$('#restoreIn').click();
+$('#restoreIn').onchange = async e=>{
+  const f=e.target.files[0]; e.target.value=''; if(!f) return;
+  try{ const d=JSON.parse(await f.text()); if(d.tip!=='RH-OKUL-YEDEK') throw 0;
+    if(!confirm('Mevcut okul verisi yedektekiyle değiştirilecek. Devam edilsin mi?')) return;
+    ['okul','ilce','ogrSay','ogretmenSay','rehber','mudur','subeler','rows'].forEach(k=>{ if(k in d) O[k]=d[k]; });
+    saveO(); $$('#tab-okul [data-o]').forEach(inp=>inp.value=O[inp.dataset.o]??''); renderOkul(); toast('Yedek yüklendi.');
+  }catch(_){ toast('Bu dosya bir okul yedeği değil.'); }
+};
+$('#btnClearO').onclick = ()=>{
+  if(!confirm('Sınıflardan gelen bütün veriler silinecek (okul bilgileri kalır). Emin misiniz?')) return;
+  O.rows={}; saveO(); renderOkul(); toast('Okul verisi temizlendi.');
+};
+
+/* ======================================================
+   EXCEL ÇIKTILARI (xlsx-js-style)
+   ====================================================== */
+const BRD = {style:'thin', color:{rgb:'000000'}};
+const ST = {
+  title:{font:{bold:true,sz:13}, alignment:{horizontal:'center',vertical:'center'}},
+  info:{font:{bold:true,sz:10}, alignment:{vertical:'center'}},
+  head:{font:{bold:true,sz:9}, alignment:{horizontal:'center',vertical:'center',wrapText:true}, border:{top:BRD,bottom:BRD,left:BRD,right:BRD}, fill:{fgColor:{rgb:'DDEBF7'}}},
+  headV:{font:{bold:true,sz:8}, alignment:{horizontal:'center',vertical:'bottom',wrapText:true,textRotation:90}, border:{top:BRD,bottom:BRD,left:BRD,right:BRD}, fill:{fgColor:{rgb:'DDEBF7'}}},
+  cell:{font:{sz:9}, alignment:{horizontal:'center',vertical:'center'}, border:{top:BRD,bottom:BRD,left:BRD,right:BRD}},
+  cellL:{font:{sz:9}, alignment:{horizontal:'left',vertical:'center'}, border:{top:BRD,bottom:BRD,left:BRD,right:BRD}},
+  tot:{font:{bold:true,sz:9}, alignment:{horizontal:'center',vertical:'center'}, border:{top:BRD,bottom:BRD,left:BRD,right:BRD}, fill:{fgColor:{rgb:'FCE4D6'}}},
+  foot:{font:{sz:8,italic:true}},
+  sig:{font:{bold:true,sz:10}, alignment:{horizontal:'center'}}
+};
+function xlsHazir(){ if(!window.XLSX){ toast('Excel kitaplığı yüklenemedi (internet bağlantısı gerekir). “Yazdır / PDF” kullanabilirsiniz.', 4500); return false; } return true; }
+function stil(ws, r, c, s){ const a=XLSX.utils.encode_cell({r,c}); if(!ws[a]) ws[a]={t:'s',v:''}; ws[a].s=s; }
+
+function xlsSinif(){
+  if(!xlsHazir()) return;
+  const L=riskliler(), c=sinifSayilari(), sb=normSinif(T.sinif)||'';
+  const cols = 4+N; // Sıra, Sınıf, No, Ad + 36
+  const aoa=[
+    [`${YIL} EĞİTİM ÖĞRETİM YILI SINIF RİSK HARİTASI`],
+    [`OKUL ADI: ${T.okul||''}`],
+    [`SINIF/ŞUBE: ${sb}`, '', '', '', `SINIF MEVCUDU: ${T.mevcut||''}`],
+    [`SINIF REHBER ÖĞRETMENİ: ${T.ogretmen||''}`],
+    [],
+    ['Sıra No','Sınıf/Şube','Okul Numarası','Öğrencinin Adı Soyadı', ...CATS]
+  ];
+  const H=5, first=6;
+  L.forEach((o,k)=>aoa.push([k+1, sb, o.no||'', o.ad, ...CATS.map((_,i)=>o.r.includes(i)?'X':'')]));
+  const minRows=Math.max(L.length, 10); for(let k=L.length;k<minRows;k++) aoa.push([k+1,'','','',...new Array(N).fill('')]);
+  const totR=first+minRows;
+  aoa.push(['TOPLAM','','','',...c]);
+  const notlar=L.filter(o=>o.r.includes(35)&&o.not);
+  aoa.push([]);
+  if(notlar.length){ aoa.push(['“Diğer” açıklamaları:']); notlar.forEach(o=>aoa.push([`${o.no?o.no+' ':''}${o.ad}: ${o.not}`])); aoa.push([]); }
+  const sigR=aoa.length+1; aoa.push([]); aoa.push(['','','','', `${bugun()}`]); aoa.push(['','','','', T.ogretmen||'']); aoa.push(['','','','', 'Sınıf Rehber Öğretmeni']);
+  aoa.push([]); aoa.push(['S.İ.4.a — ÖZEL EĞİTİM VE REHBERLİK HİZMETLERİ GENEL MÜDÜRLÜĞÜ']);
+  const ws=XLSX.utils.aoa_to_sheet(aoa);
+  ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:cols-1}},{s:{r:1,c:0},e:{r:1,c:cols-1}},{s:{r:2,c:0},e:{r:2,c:3}},{s:{r:2,c:4},e:{r:2,c:cols-1}},{s:{r:3,c:0},e:{r:3,c:cols-1}},{s:{r:totR,c:0},e:{r:totR,c:3}}];
+  ws['!cols']=[{wch:5},{wch:8},{wch:9},{wch:26},...new Array(N).fill({wch:4.2})];
+  ws['!rows']=[{hpt:22},{hpt:16},{hpt:16},{hpt:16},{hpt:6},{hpt:175}];
+  stil(ws,0,0,ST.title); [1,2,3].forEach(r=>stil(ws,r,0,ST.info)); stil(ws,2,4,ST.info);
+  for(let k=0;k<cols;k++) stil(ws,H,k, k<4?ST.head:ST.headV);
+  for(let r=first;r<totR;r++) for(let k=0;k<cols;k++) stil(ws,r,k, k===3?ST.cellL:ST.cell);
+  for(let k=0;k<cols;k++){ stil(ws,totR,k,ST.tot); if(k>=4){ const col=XLSX.utils.encode_col(k); ws[XLSX.utils.encode_cell({r:totR,c:k})]={t:'n', v:c[k-4], f:`COUNTIF(${col}${first+1}:${col}${totR},"X")`, s:ST.tot}; } }
+  for(let r=sigR;r<sigR+4;r++) stil(ws,r,4,ST.sig);
+  stil(ws,aoa.length-1,0,ST.foot);
+  ws['!merges'].push({s:{r:sigR+1,c:4},e:{r:sigR+1,c:14}},{s:{r:sigR+2,c:4},e:{r:sigR+2,c:14}},{s:{r:sigR+3,c:4},e:{r:sigR+3,c:14}});
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'SINIF RİSK HARİTASI');
+  XLSX.writeFile(wb, `Sinif_Risk_Haritasi_${dosyaAdi(sb||'sinif')}_${YIL}.xlsx`);
+}
+function xlsOkul(){
+  if(!xlsHazir()) return;
+  const keys=siraliAnahtar(); if(!keys.length){ toast('Tabloda sınıf yok.'); return; }
+  const t=okulToplam(), cols=2+N;
+  const aoa=[
+    [`${YIL} EĞİTİM ÖĞRETİM YILI OKUL RİSK HARİTASI`],
+    [`OKUL ADI: ${O.okul||''}`],
+    [`İLÇESİ: ${O.ilce||''}`],
+    [`TOPLAM ÖĞRENCİ SAYISI: ${O.ogrSay||''}`],
+    [`TOPLAM ÖĞRETMEN SAYISI: ${O.ogretmenSay||''}`],
+    [],
+    ['Sıra No','Sınıf/Şube', ...CATS.map((_,i)=>okulEtiket(i))]
+  ];
+  const H=6, first=7;
+  keys.forEach((k,ri)=>aoa.push([ri+1, k, ...O.rows[k].c]));
+  const totR=first+keys.length;
+  aoa.push(['TOPLAM','',...t]);
+  aoa.push([]); aoa.push([]);
+  const sigR=aoa.length;
+  aoa.push(['','', '', '', '', bugun(), '','','','','','','','','','','','','','','','','','','', '', bugun()]);
+  aoa.push(['','', '', '', '', O.rehber||'', '','','','','','','','','','','','','','','','','','','', '', O.mudur||'']);
+  aoa.push(['','', '', '', '', 'Rehberlik Öğretmeni', '','','','','','','','','','','','','','','','','','','', '', 'Okul Müdürü']);
+  aoa.push([]); aoa.push(['S.İ.2.a — ÖZEL EĞİTİM VE REHBERLİK HİZMETLERİ GENEL MÜDÜRLÜĞÜ']);
+  const ws=XLSX.utils.aoa_to_sheet(aoa);
+  ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:cols-1}},{s:{r:totR,c:0},e:{r:totR,c:1}}];
+  [1,2,3,4].forEach(r=>ws['!merges'].push({s:{r,c:0},e:{r,c:12}}));
+  [0,1,2].forEach(d=>{ ws['!merges'].push({s:{r:sigR+d,c:5},e:{r:sigR+d,c:14}},{s:{r:sigR+d,c:26},e:{r:sigR+d,c:35}}); stil(ws,sigR+d,5,ST.sig); stil(ws,sigR+d,26,ST.sig); });
+  ws['!cols']=[{wch:5},{wch:10},...new Array(N).fill({wch:4.4})];
+  ws['!rows']=[{hpt:22},{hpt:16},{hpt:16},{hpt:16},{hpt:16},{hpt:6},{hpt:185}];
+  stil(ws,0,0,ST.title); [1,2,3,4].forEach(r=>stil(ws,r,0,ST.info));
+  for(let k=0;k<cols;k++) stil(ws,H,k, k<2?ST.head:ST.headV);
+  for(let r=first;r<totR;r++) for(let k=0;k<cols;k++) stil(ws,r,k,ST.cell);
+  for(let k=0;k<cols;k++){ stil(ws,totR,k,ST.tot); if(k>=2){ const col=XLSX.utils.encode_col(k); ws[XLSX.utils.encode_cell({r:totR,c:k})]={t:'n', v:t[k-2], f:`SUM(${col}${first+1}:${col}${totR})`, s:ST.tot}; } }
+  stil(ws,aoa.length-1,0,ST.foot);
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'OKUL RİSK HARİTASI');
+  // RAM formu için ikinci sayfa
+  const f=[['RAM FORMUNA GİRİLECEK DEĞERLER'],[],['Okulun adı',O.okul||''],['İlçe',O.ilce||''],['Toplam öğrenci sayısı',+O.ogrSay||O.ogrSay||''],['Toplam öğretmen sayısı',+O.ogretmenSay||O.ogretmenSay||''],[],['Madde','Sayı'],...t.map((v,i)=>[`${i+1}. ${okulEtiket(i)}`, v])];
+  const ws2=XLSX.utils.aoa_to_sheet(f); ws2['!cols']=[{wch:52},{wch:14}]; stil(ws2,0,0,ST.title);
+  for(let r=7;r<f.length;r++){ stil(ws2,r,0, r===7?ST.head:ST.cellL); stil(ws2,r,1, r===7?ST.head:ST.cell); }
+  XLSX.utils.book_append_sheet(wb, ws2, 'RAM FORMU');
+  XLSX.writeFile(wb, `Okul_Risk_Haritasi_${dosyaAdi(O.okul||'okul')}_${YIL}.xlsx`);
+}
+$('#btnXlsS').onclick = ()=>{ if(!normSinif(T.sinif)){ toast('Önce sınıf/şube bilgisini yazın.'); return; } xlsSinif(); };
+$('#btnXlsO').onclick = xlsOkul;
+
+/* ======================================================
+   YAZDIR
+   ====================================================== */
+function yazdirSinif(){
+  const L=riskliler(), c=sinifSayilari(), sb=normSinif(T.sinif);
+  const bos=Math.max(0, 12-L.length);
+  const notlar=L.filter(o=>o.r.includes(35)&&o.not);
+  $('#printArea').innerHTML = `<div class="pt">
+    <h1>${YIL} EĞİTİM ÖĞRETİM YILI SINIF RİSK HARİTASI</h1>
+    <div class="info"><span><b>Okul:</b> ${esc(T.okul)}</span><span><b>Sınıf/Şube:</b> ${esc(sb)}</span><span><b>Sınıf Rehber Öğretmeni:</b> ${esc(T.ogretmen)}</span><span><b>Mevcut:</b> ${esc(T.mevcut)}</span></div>
+    <table><colgroup><col style="width:6mm"><col style="width:11mm"><col style="width:12mm"><col style="width:38mm">${'<col>'.repeat(N)}</colgroup>
+    <thead><tr><th>Sıra</th><th>Sınıf/ Şube</th><th>Okul No</th><th>Öğrencinin Adı Soyadı</th>${CATS.map(t=>`<th class="v"><div>${esc(t)}</div></th>`).join('')}</tr></thead>
+    <tbody>${L.map((o,k)=>`<tr><td>${k+1}</td><td>${esc(sb)}</td><td>${esc(o.no)}</td><td class="l">${esc(o.ad)}</td>${CATS.map((_,i)=>`<td>${o.r.includes(i)?'X':''}</td>`).join('')}</tr>`).join('')}
+    ${Array.from({length:bos},(_,k)=>`<tr><td>${L.length+k+1}</td><td></td><td></td><td class="l">&nbsp;</td>${'<td></td>'.repeat(N)}</tr>`).join('')}
+    <tr class="tot"><td colspan="4">TOPLAM</td>${c.map(v=>`<td>${v}</td>`).join('')}</tr></tbody></table>
+    ${notlar.length?`<div class="extra"><b>“Diğer” açıklamaları:</b> ${notlar.map(o=>`${esc(o.ad)}: ${esc(o.not)}`).join(' · ')}</div>`:''}
+    <div class="sig"><div></div><div>${bugun()}<br><br>${esc(T.ogretmen)}<br>Sınıf Rehber Öğretmeni</div></div>
+    <div class="foot"><span>S.İ.4.a</span><span>ÖZEL EĞİTİM VE REHBERLİK HİZMETLERİ GENEL MÜDÜRLÜĞÜ</span></div></div>`;
+  window.print();
+}
+function yazdirOkul(){
+  const keys=siraliAnahtar(); if(!keys.length){ toast('Tabloda sınıf yok.'); return; }
+  const t=okulToplam();
+  $('#printArea').innerHTML = `<div class="pt">
+    <h1>${YIL} EĞİTİM ÖĞRETİM YILI OKUL RİSK HARİTASI</h1>
+    <div class="info"><span><b>Okul Adı:</b> ${esc(O.okul)}</span><span><b>İlçesi:</b> ${esc(O.ilce)}</span><span><b>Toplam Öğrenci Sayısı:</b> ${esc(O.ogrSay)}</span><span><b>Toplam Öğretmen Sayısı:</b> ${esc(O.ogretmenSay)}</span></div>
+    <table><colgroup><col style="width:7mm"><col style="width:14mm">${'<col>'.repeat(N)}</colgroup>
+    <thead><tr><th>Sıra No</th><th>Sınıf/ Şube</th>${CATS.map((_,i)=>`<th class="v"><div>${esc(okulEtiket(i))}</div></th>`).join('')}</tr></thead>
+    <tbody>${keys.map((k,ri)=>`<tr><td>${ri+1}</td><td>${esc(k)}</td>${O.rows[k].c.map(v=>`<td>${v}</td>`).join('')}</tr>`).join('')}
+    <tr class="tot"><td colspan="2">TOPLAM</td>${t.map(v=>`<td>${v}</td>`).join('')}</tr></tbody></table>
+    <div class="sig"><div>${bugun()}<br><br>${esc(O.rehber)}<br>Rehberlik Öğretmeni</div><div>${bugun()}<br><br>${esc(O.mudur)}<br>Okul Müdürü</div></div>
+    <div class="foot"><span>S.İ.2.a</span><span>ÖZEL EĞİTİM VE REHBERLİK HİZMETLERİ GENEL MÜDÜRLÜĞÜ</span></div></div>`;
+  window.print();
+}
+$('#btnPrintS').onclick = ()=>{ if(!normSinif(T.sinif)){ toast('Önce sınıf/şube bilgisini yazın.'); return; } yazdirSinif(); };
+$('#btnPrintO').onclick = yazdirOkul;
+
+/* ================== DIŞARIYA AÇILAN KÖPRÜLER ==================
+   Aşağıdaki fonksiyonları sayfanın altındaki Firebase modülü çağırır.
+   Klasik betikte tanımlı const/let dışarıdan görünmediği için
+   gereken her şey window üzerinden veriliyor.                      */
+
+window.__rhListeAyarla = function(veri){
+  LISTE = veri || {};
+  LISTE_SUBELER = Object.keys(LISTE).sort(sinifSirala);
+  LISTE_TOPLAM = LISTE_SUBELER.reduce((a,k)=>a+(LISTE[k].s||[]).length,0);
+  subeSecimiDoldur();
+  if(!O.subeler){ O.subeler = LISTE_SUBELER.join(', '); $('[data-o="subeler"]').value = O.subeler; }
+  if(!O.ogrSay){ O.ogrSay = String(LISTE_TOPLAM); $('[data-o="ogrSay"]').value = O.ogrSay; }
+  saveO(); subeBilgiGoster(); renderDurum();
+};
+
+/* Firebase'den gelen şube özetleri tabloyu doldurur. Elle açılmış
+   satırlar korunur; aynı şube yeniden gelirse üzerine yazılır.     */
+window.__rhOkulAyarla = function(gelen){
+  Object.entries(gelen || {}).forEach(([k, p])=>{
+    if(!Array.isArray(p.c) || p.c.length !== N) return;
+    O.rows[normSinif(k)] = {
+      sinif: normSinif(k), ogretmen: p.ogretmen||'', mevcut:+p.mevcut||0,
+      riskli:+p.riskli||0, c: p.c.map(v=>Math.max(0, parseInt(v)||0)),
+      t: p.t || '', kaynak: 'uygulama', ogr: null
+    };
+  });
+  saveO(); renderOkul();
+  const n = Object.keys(gelen || {}).length;
+  const d = $('#gelenDurum');
+  if(d) d.textContent = n ? `${n} şube gönderim yapmış` : 'Henüz gönderim yok';
+};
+
+/* Rolü modül belirler: öğretmen hesabı okul sekmesini görmez. */
+window.__rhRol = function(rol){
+  const okulBtn = document.querySelector('.tabs button[data-tab="okul"]');
+  if(okulBtn) okulBtn.style.display = (rol === 'idare') ? '' : 'none';
+  if(rol !== 'idare' && store.get('rh27_sekme','sinif') === 'okul') sekme('sinif');
+};
+
+window.__rhPaket = () => paket();
+window.__rhToast = (m) => toast(m);
+window.__rhListeDurum = (m) => { const d=$('#listeDurum'); if(d) d.textContent = m; };
+
+/* ================== BAŞLAT ================== */
+renderT();
+sekme(store.get('rh27_sekme','sinif'));
+</script>
+
+<!-- ================= GİRİŞ PERDESİ ================= -->
+<div id="rhGiris" style="position:fixed;inset:0;z-index:9999;display:none;
+     background:#f6f5f0;align-items:center;justify-content:center;padding:20px">
+  <div style="width:100%;max-width:400px;background:#fff;border:1px solid #d9d5c9;
+       border-radius:16px;padding:26px 24px;box-shadow:0 2px 10px rgba(0,0,0,.08)">
+    <h2 style="margin:0 0 4px;font-size:19px">İdare girişi</h2>
+    <p style="margin:0 0 18px;color:#6f6d64;font-size:13px;line-height:1.5">
+      Okul risk haritasını görmek ve sınıf listelerini yüklemek için
+      rehberlik/idare hesabıyla giriş yapın. Öğretmenlerin giriş
+      yapmasına gerek yoktur.</p>
+    <label style="display:block;font-size:12px;font-weight:700;color:#6f6d64;margin-bottom:4px">E-posta</label>
+    <input id="rhMail" type="email" autocomplete="username"
+      style="width:100%;padding:11px;border:1px solid #d9d5c9;border-radius:10px;font-size:15px;margin-bottom:12px">
+    <label style="display:block;font-size:12px;font-weight:700;color:#6f6d64;margin-bottom:4px">Şifre</label>
+    <input id="rhSifre" type="password" autocomplete="current-password"
+      style="width:100%;padding:11px;border:1px solid #d9d5c9;border-radius:10px;font-size:15px;margin-bottom:14px">
+    <div id="rhHata" style="display:none;background:#fde8e8;color:#b42318;font-size:13px;
+         font-weight:600;border-radius:10px;padding:9px 11px;margin-bottom:12px"></div>
+    <button id="rhGirisBtn"
+      style="width:100%;padding:12px;background:#2f5d50;color:#fff;border:0;border-radius:10px;
+             font-size:15px;font-weight:700;cursor:pointer">Giriş yap</button>
+    <button id="rhVazgec"
+      style="width:100%;margin-top:8px;padding:10px;background:transparent;color:#6f6d64;
+             border:0;font-size:14px;font-weight:600;cursor:pointer">Vazgeç</button>
+  </div>
+</div>
+
+<script type="module">
+/* ======================================================================
+   RİSK HARİTASI — FIREBASE KATMANI
+
+   Bu sayfanın kendisinde hiçbir öğrenci bilgisi yoktur. Sınıf listeleri
+   ve şube özetleri yalnızca giriş yapıldıktan sonra veritabanından gelir.
+
+   İki hesap vardır:
+     · öğretmen hesabı  → sınıf listesini okur, kendi şubesinin SAYILARINI yazar
+     · idare hesabı     → bütün şube özetlerini okur, okul haritasını üretir
+
+   Öğrenci adları ve işaretleri hiçbir zaman sunucuya gitmez; onlar
+   öğretmenin kendi tarayıcısında kalır.
+   ====================================================================== */
+
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword, signInAnonymously, onAuthStateChanged, signOut }
+  from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getDatabase, ref, get, set, onValue }
+  from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey: 'AIzaSyBFMdUB8ReoF5_xsPJNw03Dfwb3ffj4378',
+  authDomain: 'rezervasyon-87f10.firebaseapp.com',
+  databaseURL: 'https://rezervasyon-87f10-default-rtdb.europe-west1.firebasedatabase.app',
+  projectId: 'rezervasyon-87f10',
+  storageBucket: 'rezervasyon-87f10.firebasestorage.app',
+  messagingSenderId: '237982364528',
+  appId: '1:237982364528:web:0e40fd780d3504568255b5',
+};
+
+/* Okul haritasını görebilen ve sınıf listelerini yükleyebilen hesap. */
+const IDARE_UID = 'GagkZdFs1heQrrLmS00iPl2cWHO2';
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+/* Rol belli olana kadar öğretmen varsayılır; okul sekmesi gizli kalır. */
+window.__rhRol('ogretmen');
+
+const perde = document.getElementById('rhGiris');
+const hataKutu = document.getElementById('rhHata');
+const hataGoster = m => { hataKutu.textContent = m; hataKutu.style.display = 'block'; };
+const hataGizle  = () => { hataKutu.style.display = 'none'; };
+
+/* Firebase anahtarlarında . # $ / [ ] kullanılamaz; şube adları
+   "1-A" biçiminde olduğu için sorun çıkmaz, yine de güvenceye alıyoruz. */
+const guvenliAnahtar = k => String(k || '').replace(/[.#$/[\]]/g, '_');
+
+function girisDene(){
+  hataGizle();
+  const mail = document.getElementById('rhMail').value.trim();
+  const sifre = document.getElementById('rhSifre').value;
+  if(!mail || !sifre) return hataGoster('E-posta ve şifre gerekli.');
+  const btn = document.getElementById('rhGirisBtn');
+  btn.disabled = true; btn.textContent = 'Giriş yapılıyor…';
+  signInWithEmailAndPassword(auth, mail, sifre)
+    .catch(() => hataGoster('E-posta veya şifre hatalı.'))
+    .finally(() => { btn.disabled = false; btn.textContent = 'Giriş yap'; });
+}
+document.getElementById('rhGirisBtn').onclick = girisDene;
+document.getElementById('rhSifre').addEventListener('keydown', e => { if(e.key === 'Enter') girisDene(); });
+
+/* Öğretmen hiçbir şey yazmaz: sayfa açılınca sessizce anonim oturum
+   alınır. Bu bir kimlik değil — amacı, veritabanının adresi bilen
+   herkes tarafından düz bir istekle okunmasını engellemek. Gerçek
+   kimlik yalnızca idare tarafında var.                              */
+let anonimDeneniyor = false;
+
+onAuthStateChanged(auth, async (user) => {
+  if(!user){
+    perde.style.display = 'none';
+    if(anonimDeneniyor) return;
+    anonimDeneniyor = true;
+    try{
+      await signInAnonymously(auth);
+    }catch(e){
+      /* En sık nedeni: Firebase'de anonim giriş açık değil. Sayfa yine
+         de çalışsın — öğretmen e-Okul listesini yapıştırıp işaretleme
+         yapabilir; yalnızca liste gelmez ve gönderim yapılamaz.      */
+      altDugme(false, '');
+      window.__rhToast('Sunucuya bağlanılamadı. İşaretleme yapabilirsiniz ama "Okula gönder" çalışmaz.');
+      const d = document.getElementById('gonderDurum');
+      if(d) d.textContent = 'Bağlantı yok';
+    }finally{
+      anonimDeneniyor = false;
+    }
+    return;
+  }
+
+  perde.style.display = 'none';
+  const idare = !user.isAnonymous && user.uid === IDARE_UID;
+  window.__rhRol(idare ? 'idare' : 'ogretmen');
+  altDugme(idare, user.email || '');
+
+  /* Sınıf listeleri — oturumu olan herkes okur. */
+  try{
+    const anlik = await get(ref(db, 'sinifListeleri'));
+    window.__rhListeAyarla(anlik.val() || {});
+  }catch(e){
+    window.__rhToast('Sınıf listeleri okunamadı. e-Okul listesini yapıştırabilirsiniz.');
+  }
+
+  /* Şube özetleri — yalnızca idare okur. */
+  if(idare){
+    onValue(ref(db, 'riskHaritasi'),
+      snap => window.__rhOkulAyarla(snap.val() || {}),
+      ()   => window.__rhToast('Şube özetleri okunamadı.'));
+    listeYuklemeyiAc();
+  }else{
+    const b = document.getElementById('btnListeYukle');
+    if(b && b.closest('.row')) b.closest('.row').style.display = 'none';
+  }
+});
+
+document.getElementById('rhVazgec').onclick = () => { perde.style.display = 'none'; hataGizle(); };
+
+/* Öğretmen gönderimi: pakette yalnızca sayılar vardır. */
+window.__rhGonder = async (p) => {
+  const u = auth.currentUser;
+  if(!u) throw new Error('oturum kapalı');
+  const k = guvenliAnahtar(p.sinif);
+  if(!k) throw new Error('şube belirsiz');
+  await set(ref(db, 'riskHaritasi/' + k), {
+    sinif: p.sinif, ogretmen: p.ogretmen || '', mevcut: +p.mevcut || 0,
+    riskli: +p.riskli || 0, c: p.c, t: new Date().toISOString(), yil: p.yil
+  });
+};
+
+/* İdare sınıf listelerini bir kez yükler; dosya tarayıcıdan okunur,
+   adlar bu sayfanın kaynağına hiçbir zaman gömülmez. */
+function listeYuklemeyiAc(){
+  const btn = document.getElementById('btnListeYukle');
+  const inp = document.getElementById('listeIn');
+  if(!btn || !inp) return;
+  btn.onclick = () => inp.click();
+  inp.onchange = async () => {
+    const f = inp.files && inp.files[0];
+    inp.value = '';
+    if(!f) return;
+    try{
+      const veri = JSON.parse(await f.text());
+      const subeler = Object.keys(veri);
+      if(!subeler.length || !veri[subeler[0]].s) throw new Error('biçim');
+      window.__rhListeDurum('Yükleniyor…');
+      await set(ref(db, 'sinifListeleri'), veri);
+      window.__rhListeAyarla(veri);
+      const toplam = subeler.reduce((a,k)=>a+veri[k].s.length, 0);
+      window.__rhListeDurum(`${subeler.length} şube · ${toplam} öğrenci yüklendi`);
+    }catch(e){
+      window.__rhListeDurum('Dosya okunamadı veya biçimi uygun değil.');
+    }
+  };
+}
+
+/* Alt köşedeki tek düğme: öğretmende idare girişini açar,
+   idarede oturumu kapatır. */
+function altDugme(idare, mail){
+  let b = document.getElementById('rhAltDugme');
+  if(!b){
+    b = document.createElement('button');
+    b.id = 'rhAltDugme';
+    b.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:9998;padding:8px 12px;'
+      + 'border:1px solid #d9d5c9;border-radius:10px;background:#fff;font-size:12px;'
+      + 'font-weight:600;cursor:pointer;color:#6f6d64';
+    document.body.appendChild(b);
+  }
+  if(idare){
+    b.textContent = 'Çıkış (' + mail + ')';
+    b.onclick = () => signOut(auth);
+  }else{
+    b.textContent = 'İdare girişi';
+    b.onclick = () => { perde.style.display = 'flex'; document.getElementById('rhMail').focus(); };
+  }
+}
+</script>
+
+</body>
+</html>
