@@ -1048,8 +1048,19 @@ const firebaseConfig = {
   appId: '1:237982364528:web:0e40fd780d3504568255b5',
 };
 
-/* Okul haritasını görebilen ve sınıf listelerini yükleyebilen hesap. */
-const IDARE_UID = 'GagkZdFs1heQrrLmS00iPl2cWHO2';
+/* Okul haritasını görebilen ve sınıf listelerini yükleyebilen hesaplar
+   veritabanındaki "yoneticiler" dalında tutulur. Yeni bir rehber öğretmen
+   yetkilendirmek için oraya UID eklemek yeter; bu dosya değişmez.
+   Kuralda da aynı dal kullanıldığı için yetki sunucu tarafında sınanır. */
+async function idareMi(user){
+  if(!user || user.isAnonymous) return false;
+  try{
+    const anlik = await get(ref(db, 'yoneticiler/' + user.uid));
+    return anlik.val() === true;
+  }catch(e){
+    return false;
+  }
+}
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -1109,7 +1120,7 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   perde.style.display = 'none';
-  const idare = !user.isAnonymous && user.uid === IDARE_UID;
+  const idare = await idareMi(user);
   window.__rhRol(idare ? 'idare' : 'ogretmen');
   altDugme(idare, user.email || '');
 
